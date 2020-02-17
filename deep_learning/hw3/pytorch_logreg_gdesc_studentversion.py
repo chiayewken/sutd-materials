@@ -127,7 +127,6 @@ class logreglayer(nn.Module):
     def forward(self, x):
         x = torch.matmul(x, self.w)
         x = torch.add(x, self.bias)
-        # x = torch.squeeze(x)
         return x
         # TODO
         # YOUR IMPLEMENTATION HERE
@@ -147,6 +146,7 @@ def train_epoch(model, trainloader, criterion, device, optimizer):
 
         output = model(inputs)
 
+        # loss = criterion(output, labels)
         loss = criterion(output.squeeze(1), labels)
         loss.backward()
 
@@ -185,7 +185,6 @@ def evaluate(model, dataloader, criterion, device):
 
             # _, preds = torch.max(cpuout, 1)
             preds = (cpuout >= 0.5).squeeze(1)
-            # preds = (cpuout >= 0.5)
             running_corrects += torch.sum(preds == labels.data)
 
         accuracy = running_corrects.double() / len(
@@ -278,6 +277,7 @@ def run():
     # TODO
     criterion = (
         torch.nn.BCEWithLogitsLoss()
+        # torch.nn.CrossEntropyLoss()
     )  # which loss function suits here, given that our model produces 1-dimensional output  and we want to use it for classification?
 
     optimizer = torch.optim.SGD(

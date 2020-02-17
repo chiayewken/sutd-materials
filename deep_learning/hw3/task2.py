@@ -4,6 +4,7 @@ import torch
 import torch.utils.data
 import torchvision
 from sklearn import model_selection
+from tqdm import tqdm
 
 
 def get_ds(data_dir, is_train):
@@ -72,7 +73,7 @@ def get_data_dims(ds):
 
 
 def train(net, criterion, optimizer, num_epochs):
-    for e in range(num_epochs):
+    for e in tqdm(range(num_epochs)):
         losses = []
         for i, data in enumerate(loader_trn):
             inputs, labels = data
