@@ -119,17 +119,33 @@ class logreglayer(nn.Module):
         super(logreglayer, self).__init__()  # initialize base class
 
         self.bias = torch.nn.Parameter(data=torch.zeros(1), requires_grad=True)
+        # YOUR IMPLEMENTATION HERE # shape must be (dims,1), requires_grad to True , random init of values from a zero mean normal distribution
         self.w = torch.nn.Parameter(
             data=torch.randn(dims, 1, dtype=torch.double), requires_grad=True
-        )  # TODO
-        # YOUR IMPLEMENTATION HERE # shape must be (dims,1), requires_grad to True , random init of values from a zero mean normal distribution
+        )
 
     def forward(self, x):
+        # YOUR IMPLEMENTATION HERE
         x = torch.matmul(x, self.w)
         x = torch.add(x, self.bias)
         return x
-        # TODO
-        # YOUR IMPLEMENTATION HERE
+
+
+class MySGD:
+    def __init__(self, lr):
+        self.lr = lr
+
+    @staticmethod
+    def zero_grad(net: torch.nn.Module):
+        for p in net.parameters():
+            if p.grad is not None:
+                p.grad.data.detach_()
+                p.grad.data.zero_()
+
+    def step(self, net: torch.nn.Module):
+        for p in net.parameters():
+            if p.grad is not None:
+                p.data.sub_(self.lr * p.grad.data)
 
 
 def train_epoch(model, trainloader, criterion, device, optimizer):
@@ -142,7 +158,8 @@ def train_epoch(model, trainloader, criterion, device, optimizer):
         inputs = data[0].to(device)
         labels = data[1].to(device)
 
-        optimizer.zero_grad()
+        # optimizer.zero_grad()
+        optimizer.zero_grad(model)
 
         output = model(inputs)
 
@@ -151,11 +168,12 @@ def train_epoch(model, trainloader, criterion, device, optimizer):
         loss.backward()
 
         # apply gradient to your parameters in model ... model.w and model.bias ... remember about data and grad :)
-        # TODO
         # run it at first using the optimizer, and fill up all other todos,
         # then in a second step replace it by your own version which updates the model parameters
-        optimizer.step()
+        # optimizer.step()
 
+        # optimizer was initialized from MySGD(learning_rate)
+        optimizer.step(model)
         losses.append(loss.item())
 
     return losses
@@ -258,31 +276,24 @@ def run():
     # print(model.score(xv,yv))
 
     # Tensordataset
-    # TODO
-    dtr = get_dataset(
-        xtr, ytr
-    )  # TensorDataset from tensors from xtr, ytr - our training features and labels
-    dv = get_dataset(
-        xv, yv
-    )  # TensorDataset from tensors from xv, yv - our validation features and labels
+    # TensorDataset from tensors from xtr, ytr - our training features and labels
+    dtr = get_dataset(xtr, ytr)
+    # TensorDataset from tensors from xv, yv - our validation features and labels
+    dv = get_dataset(xv, yv)
     # define dataloader over dataset
-    loadertr = torch.utils.data.DataLoader(
-        dtr, batch_size=batch_size, shuffle=True
-    )  # returns an iterator
+    # returns an iterator
+    loadertr = torch.utils.data.DataLoader(dtr, batch_size=batch_size, shuffle=True)
     loaderval = torch.utils.data.DataLoader(dv, batch_size=valbatch_size, shuffle=False)
 
     # model and loss
-    # TODO
     model = logreglayer(dims=xtr.shape[-1])  # your logreglayer properly initialized
-    # TODO
-    criterion = (
-        torch.nn.BCEWithLogitsLoss()
-        # torch.nn.CrossEntropyLoss()
-    )  # which loss function suits here, given that our model produces 1-dimensional output  and we want to use it for classification?
+    # which loss function suits here, given that our model produces 1-dimensional output  and we want to use it for classification?
+    criterion = torch.nn.BCEWithLogitsLoss()
 
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=learningrate, momentum=0.0, weight_decay=0
-    )
+    # optimizer = torch.optim.SGD(
+    #     model.parameters(), lr=learningrate, momentum=0.0, weight_decay=0
+    # )
+    optimizer = MySGD(learningrate)
     device = torch.device("cpu")
 
     best_epoch, best_perfmeasure, bestweights = train_modelcv(
@@ -298,10 +309,8 @@ def run():
 
     model.load_state_dict(bestweights)
 
-    # TODO
-    dte = get_dataset(
-        xt, yt
-    )  # TensorDataset from tensors from xte, yte - our test features and labels
+    # TensorDataset from tensors from xte, yte - our test features and labels
+    dte = get_dataset(xt, yt)
     loaderte = torch.utils.data.DataLoader(dte, batch_size=valbatch_size, shuffle=False)
 
     test_accuracy = evaluate(
