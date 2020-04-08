@@ -19,6 +19,7 @@ class HyperParams:
         tie_embed_weights=True,
         seq_len=32,
         dev_run=False,
+        verbose=True,
     ):
         self.root = root
         self.lr = lr
@@ -32,7 +33,10 @@ class HyperParams:
         self.tie_embed_weights = tie_embed_weights
         self.seq_len = seq_len
         self.dev_run = dev_run
-        print(self)
+        self.verbose = verbose
+
+        if self.verbose:
+            print(self)
 
     def __eq__(self, other):
         assert isinstance(other, HyperParams)
@@ -66,7 +70,6 @@ class Vocab:
         unique = self.special + sorted(set(items))
         self.stoi = {s: i for i, s in enumerate(unique)}
         self.itos = {i: s for i, s in enumerate(unique)}
-        print(dict(vocab=len(self)))
 
     def __len__(self) -> int:
         assert len(self.stoi) == len(self.itos)
@@ -102,9 +105,10 @@ def shuffle_multi_split(
     return parts_all
 
 
-def get_device() -> torch.device:
+def get_device(verbose=True) -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(dict(device=device))
+    if verbose:
+        print(dict(device=device))
     return device
 
 

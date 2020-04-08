@@ -15,7 +15,12 @@ from utils import HyperParams, Splits, get_device, Sampler
 
 
 class TrainResult:
-    def __init__(self, hparams: HyperParams, history: List[dict], weights: dict):
+    def __init__(
+        self,
+        hparams: HyperParams,
+        history: List[dict],
+        weights: Dict[str, torch.Tensor],
+    ):
         self.hparams = hparams
         self.history = history
         self.weights = weights
@@ -30,31 +35,50 @@ class TrainResult:
         s["hparams"] = HyperParams(**s["hparams"])
         return TrainResult(**s)
 
-    @staticmethod
-    def batch_save(results: list, path: str):
-        assert all([isinstance(r, TrainResult) for r in results])
-        torch.save([r.to_dict() for r in results], path)
-
-    @staticmethod
-    def batch_load(path: str):
-        raw: list = torch.load(path, map_location=get_device())
-        return [TrainResult.from_dict(s) for s in raw]
-
     def get_summary(self) -> dict:
-        summary = self.hparams.__dict__
+        summary = copy.deepcopy(self.hparams.__dict__)
         latest: Dict[str, Dict[str, float]] = self.history[-1]
         for data_split, metrics in latest.items():
             for key, val in metrics.items():
                 summary[data_split + "_" + key] = val
         return summary
 
-    @staticmethod
-    def batch_summary(results: list) -> pd.DataFrame:
-        assert all([isinstance(r, TrainResult) for r in results])
+
+class ResultsManager:
+    def __init__(self, path: str):
+        self.path = Path(path)
+        self.results: List[TrainResult] = []
+        if self.path.exists():
+            self.load()
+
+    def save(self):
+        torch.save([r.to_dict() for r in self.results], str(self.path))
+
+    def load(self):
+        print(dict(loading=self.path))
+        raw: list = torch.load(str(self.path), map_location=get_device())
+        self.results = [TrainResult.from_dict(s) for s in raw]
+
+    def get_summary(self) -> pd.DataFrame:
+        df = pd.DataFrame([r.get_summary() for r in self.results])
+        cols_changed = [k for k in df.keys() if df[k].nunique() > 1]
+        if cols_changed:
+            df = df[cols_changed].sort_values("val_loss", ascending=False)
+        return df
+
+    def get_best(self):
+        sort = sorted(self.results, key=lambda r: r.history[-1][Splits.val]["loss"])
+        best = sort[0]
+        print(dict(best=best.hparams))
+        return best
+
+    def check_hparams_exist(self, hparams: HyperParams) -> bool:
         r: TrainResult
-        df = pd.DataFrame([r.get_summary() for r in results])
-        cols_show = [k for k in df.keys() if df[k].nunique() > 1]
-        return df[cols_show]
+        return hparams in [r.hparams for r in self.results]
+
+    def add(self, r: TrainResult):
+        assert not self.check_hparams_exist(r.hparams)
+        self.results.append(r)
 
 
 class CharGenerationSystem:
@@ -63,7 +87,7 @@ class CharGenerationSystem:
     ):
         self.hparams = hparams
         self.data_splits = [Splits.train, Splits.val, Splits.test]
-        self.device = get_device()
+        self.device = get_device(verbose=self.hparams.verbose)
         self.datasets = {s: self.get_dataset(s) for s in self.data_splits}
         self.vocab_size = len(self.datasets[Splits.train].vocab)
         self.net = SequenceNet(n_vocab=self.vocab_size, hparams=hparams,)
@@ -128,16 +152,17 @@ class CharGenerationSystem:
                         loss = np.round(np.mean(loss_history), decimals=3)
                         return dict(loss=loss, acc=acc)
 
-    def train(self, early_stop=True) -> TrainResult:
+    def run_train(self, early_stop=True) -> TrainResult:
         self.net.to(self.device)
         best_loss = 1e9
         best_weights = {}
 
         history = []
-        for _ in tqdm(range(self.hparams.epochs)):
+        for _ in tqdm(range(self.hparams.epochs), disable=(not self.hparams.verbose)):
             hist = {s: self.run_epoch(s) for s in self.data_splits}
             history.append(hist)
-            print(hist)
+            if self.hparams.verbose:
+                print(hist)
             loss = hist[Splits.val]["loss"]
             if loss < best_loss:
                 best_loss = loss
@@ -149,7 +174,13 @@ class CharGenerationSystem:
 
         return TrainResult(self.hparams, history, best_weights)
 
-    def sample(self, num: int = None, length: int = None):
+    @classmethod
+    def load(cls, hparams: HyperParams, weights: Dict[str, torch.Tensor]):
+        system = cls(hparams)
+        system.net.load_state_dict(weights)
+        return system
+
+    def sample(self, num: int = None, length: int = None) -> List[str]:
         if num is None:
             num = self.hparams.bs
         if length is None:
@@ -157,58 +188,73 @@ class CharGenerationSystem:
 
         dataset: StarTrekCharGenerationDataset = self.datasets[Splits.train]
         token_start = dataset.vocab.stoi[dataset.vocab.start]
-        x = torch.from_numpy(np.array([token_start] * num))
-        x = x.long().reshape(num, 1)
+        x = torch.from_numpy(np.array([token_start] * num)).long()
+        x = x.reshape(num, 1)
 
         self.net.eval()
-        sampler = dict(tcn=self.sample_tcn, lstm=self.sample_rnn, gru=self.sample_rnn)
         with torch.no_grad():
-            outputs = sampler[self.hparams.model](x, length)
+            states = None
+            history = [x]
+            for _ in tqdm(range(length)):
+                n_look_back = length if self.hparams.model == "tcn" else 1
+                inputs = torch.cat(history[-n_look_back:], dim=-1)
+                logits, states = self.net(inputs, states)
+                next_logits = logits[:, -1, :]
+                history.append(Sampler.temperature(next_logits))
+            history = history[1:]  # Omit start tokens
+            outputs = torch.stack(history).squeeze().transpose(0, 1)
 
-        for i in range(num):
-            print(dataset.sequence_to_text(outputs[i, :]))
-
-    def sample_rnn(self, x: torch.Tensor, length: int) -> torch.Tensor:
-        states = None
-        history = [x]
-        for _ in range(length):
-            logits, states = self.net(history[-1], states)
-            next_logits = logits[:, -1, :]
-            history.append(Sampler.sample(next_logits))
-        return torch.stack(history).squeeze().transpose(0, 1)
-
-    def sample_tcn(self, x: torch.Tensor, length: int) -> torch.Tensor:
-        states = None
-        history = [x]
-        for _ in range(length):
-            inputs = torch.cat(history[-length:], dim=-1)
-            logits, states = self.net(inputs, states)
-            next_logits = logits[:, -1, :]
-            history.append(Sampler.temperature(next_logits))
-        return torch.stack(history).squeeze().transpose(0, 1)
+        return [dataset.sequence_to_text(outputs[i, :]) for i in range(num)]
 
 
-def main(dev_run=False, path_results="train_results.pt"):
-    results: List[TrainResult] = []
-    if Path(path_results).exists():
-        results = TrainResult.batch_load(path_results)
+def enumerate_grid(grid: Dict[str, list]) -> List[dict]:
+    dicts: List[dict] = [{}]
+    for key, values in grid.items():
+        temp = []
+        for d in dicts:
+            for val in values:
+                d = copy.deepcopy(d)
+                d[key] = val
+                temp.append(d)
+        dicts = temp
+    return dicts
 
-    for model in ["lstm", "gru", "tcn"]:
-        for n_layers in [1, 2, 3]:
-            for dropout in [0.0, 0.2]:
-                for n_hidden in [128, 256]:
-                    hparams = HyperParams(
-                        model=model,
-                        n_layers=n_layers,
-                        n_hidden=n_hidden,
-                        dropout=dropout,
-                        dev_run=dev_run,
-                    )
-                    if hparams not in [r.hparams for r in results]:
-                        system = CharGenerationSystem(hparams)
-                        results.append(system.train())
 
-    TrainResult.batch_save(results, path_results)
+def search_hparams(path, dev_run) -> HyperParams:
+    manager = ResultsManager(path)
+    grid = dict(
+        model=["lstm", "gru", "tcn"],
+        n_layers=[1, 2, 3],
+        dropout=[0.0, 0.2],
+        n_hidden=[128, 256],
+        bs=[16, 32, 128, 256, 512],
+        lr=[1e-2, 1e-3, 1e-4],
+    )
+    for kwargs in tqdm(enumerate_grid(grid)):
+        hparams = HyperParams(epochs=1, verbose=False, dev_run=dev_run, **kwargs)
+        if not manager.check_hparams_exist(hparams):
+            result = CharGenerationSystem(hparams).run_train()
+            result.weights = {}
+            manager.add(result)
+    manager.save()
+    print(manager.get_summary())
+    return manager.get_best().hparams
+
+
+def main(
+    path_results_search="results_search.pt",
+    path_results_train="results_train.pt",
+    dev_run=False,
+):
+    hparams = search_hparams(path_results_search, dev_run)
+    default = HyperParams()
+    hparams.verbose = default.verbose
+    hparams.epochs = default.epochs
+
+    manager = ResultsManager(path_results_train)
+    if not manager.check_hparams_exist(hparams):
+        manager.add(CharGenerationSystem(hparams).run_train())
+        manager.save()
 
 
 if __name__ == "__main__":
