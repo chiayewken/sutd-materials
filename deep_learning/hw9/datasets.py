@@ -36,7 +36,7 @@ class StarTrekCharGenerationDataset(torch.utils.data.Dataset):
         assert path.exists()
         return path
 
-    def preprocess_data(self):
+    def preprocess_data(self) -> List[str]:
         with open(str(self.path_data)) as f:
             return [line.strip().strip(",") for line in f if "NEXTEPISODE" not in line]
 
