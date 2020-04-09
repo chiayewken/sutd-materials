@@ -4,15 +4,15 @@ import torch
 class ConvClassifier(torch.nn.Module):
     """Simple convolutional classifier"""
 
-    def __init__(self, size_in, size_out, size_hidden=64):
+    def __init__(self, num_in, num_out, num_hidden=64):
         super().__init__()
         self.body = torch.nn.Sequential(
-            self.get_block(size_in, size_hidden),
-            self.get_block(size_hidden, size_hidden),
-            self.get_block(size_hidden, size_hidden),
-            self.get_block(size_hidden, size_hidden),
+            self.get_block(num_in, num_hidden),
+            self.get_block(num_hidden, num_hidden),
+            self.get_block(num_hidden, num_hidden),
+            self.get_block(num_hidden, num_hidden),
         )
-        self.classifier = torch.nn.Linear(size_hidden, size_out)
+        self.classifier = torch.nn.Linear(num_hidden, num_out)
 
     def forward(self, x):
         x = self.body(x)
@@ -45,15 +45,28 @@ class ConvClassifier(torch.nn.Module):
 class LinearClassifier(torch.nn.Module):
     """Simple multi-linear classifier"""
 
-    def __init__(self, size_in, size_out, size_hidden=64, num_layers=3):
+    def __init__(self, num_in, num_out, num_hidden=64, num_layers=3):
         super().__init__()
-        layers = []
-        for _ in range(num_layers - 1):
-            layers.append(torch.nn.Linear(size_hidden, size_hidden))
+        layers = [torch.nn.Linear(num_in, num_hidden)]
+        for _ in range(num_layers - 2):
+            layers.append(torch.nn.Linear(num_hidden, num_hidden))
             layers.append(torch.nn.ReLU())
-        layers[0] = torch.nn.Linear(size_in, size_hidden)
-        layers.append(torch.nn.Linear(size_hidden, size_out))
-        self.net = torch.nn.Sequential(*layers)
+        self.body = torch.nn.Sequential(*layers)
+        self.classifier = torch.nn.Linear(num_hidden, num_out)
 
     def forward(self, x):
-        return self.net(x)
+        x = self.body(x)
+        x = self.classifier(x)
+        return x
+
+
+class LinearClassifierWithOOS(LinearClassifier):
+    def __init__(self, num_in, num_out, num_hidden=64, num_layers=3):
+        super().__init__(num_in, num_out, num_hidden, num_layers)
+        self.classifier_oos = torch.nn.Linear(num_hidden, 1)
+
+    def forward(self, x):
+        x_body = self.body(x)
+        x = self.classifier(x_body)
+        x_oos = self.classifier_oos(x_body)
+        return x, x_oos

@@ -1,6 +1,6 @@
-import copy
 import operator
 import time
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,8 +14,12 @@ def set_random_state(seed=0):
     return rng
 
 
-def acc_score(logits: torch.FloatTensor, targets: torch.LongTensor) -> torch.Tensor:
-    preds = torch.argmax(logits, dim=-1)
+def acc_score(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    preds: torch.Tensor
+    if logits.shape[-1] == 1:
+        preds = logits.sigmoid().round()
+    else:
+        preds = torch.argmax(logits, dim=-1)
     return (preds == targets).float().mean()
 
 
@@ -44,7 +48,7 @@ class MathDict:
     """Allow simple math ops for dicts eg ({key:1} / {key:2}) + 3 = {key:3.5}"""
 
     def __init__(self, state: dict = None):
-        self.state = copy.deepcopy(state)
+        self.state = deepcopy(state)
 
     def apply(self, other, op):
         if type(other) in {int, float}:

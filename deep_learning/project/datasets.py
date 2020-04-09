@@ -1,17 +1,19 @@
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Tuple, List, Dict, Iterable
 
 import numpy as np
 import pandas as pd
 import sentence_transformers
-import torch.utils.data
+import torch
 import torchmeta
 import torchvision
 from sklearn import metrics, linear_model
+from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url, extract_archive
 
-import utils
+from utils import get_device, shuffle_multi_split
 
 
 class SentenceBERT(sentence_transformers.SentenceTransformer):
@@ -19,7 +21,7 @@ class SentenceBERT(sentence_transformers.SentenceTransformer):
         self.cache_dir = Path(cache_dir)
         self.dir_model = self.download()
         self.size_embed = 768
-        super().__init__(str(self.dir_model), device=utils.get_device())
+        super().__init__(str(self.dir_model), device=get_device())
 
     def download(self):
         url = "https://github.com/chiayewken/sutd-materials/releases/download/v0.1.0/bert-base-nli-mean-tokens.zip"
@@ -137,7 +139,7 @@ class SingleLabelDataset(torchmeta.utils.data.Dataset):
         return x, y
 
 
-class IntentDataset(torch.utils.data.Dataset):
+class IntentDataset(Dataset):
     def __init__(self, root: str, remove_oos_orig=True):
         self.remove_oos_orig = remove_oos_orig
         self.root = Path(root)
@@ -189,7 +191,7 @@ class IntentClassDataset(torchmeta.utils.data.ClassDataset):
     def process_data(self) -> Dict[str, List[str]]:
         unique_labels = sorted(set(self.orig_dataset.labels))
         splits = {Splits.train: 0.8, Splits.val: 0.1, Splits.test: 0.1}
-        labels_split = utils.shuffle_multi_split(
+        labels_split = shuffle_multi_split(
             items=unique_labels, fractions=list(splits.values())
         )
         i_split = list(splits.keys()).index(self.meta_split)
@@ -215,6 +217,14 @@ class IntentClassDataset(torchmeta.utils.data.ClassDataset):
     def num_classes(self) -> int:
         return len(self.labels)
 
+    def create_subset_dataset(self):
+        label_set = set(self.labels)
+        dataset = deepcopy(self.orig_dataset)
+        indices = [i for i, label in enumerate(dataset.labels) if label in label_set]
+        dataset.texts = [dataset.texts[i] for i in indices]
+        dataset.labels = [dataset.labels[i] for i in indices]
+        return dataset
+
 
 class IntentMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
     def __init__(self, params: MetaDataParams, data_split: str, try_embeds=False):
@@ -223,8 +233,9 @@ class IntentMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
         self.params = params
         self.orig_dataset = IntentDataset(self.params.root)
         self.embedder = SentenceBERT()
-        self.transform = self.get_transform(self.orig_dataset)
+        self.transform = self.get_transform(self.orig_dataset.texts)
         self.class_dataset, self.meta_dataset, self.split_dataset = self.get_datasets()
+        self.embeds = self.get_embeds()
         super().__init__(
             dataset=self.split_dataset,
             batch_size=params.bs,
@@ -234,8 +245,11 @@ class IntentMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
         if try_embeds:
             self.try_embeds_fit_simple_classifier()
 
-    def get_transform(self, dataset: IntentDataset):
-        texts = dataset.texts
+    def get_embeds(self) -> np.ndarray:
+        dataset = self.class_dataset.create_subset_dataset()
+        return np.stack([self.transform(t) for t in dataset.texts])
+
+    def get_transform(self, texts: List[str]):
         embeds = self.embedder.embed_texts(texts)
         text2embed = {texts[i]: embeds[i] for i in range(len(texts))}
         return lambda x: text2embed[x]
@@ -260,7 +274,7 @@ class IntentMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
     def try_embeds_fit_simple_classifier(self):
         embeds = np.stack([self.transform(text) for text in self.orig_dataset.texts])
         labels = np.array(self.orig_dataset.labels)
-        train, val, test = utils.shuffle_multi_split(list(range(len(embeds))))
+        train, val, test = shuffle_multi_split(list(range(len(embeds))))
         model = linear_model.RidgeClassifier()
         model.fit(embeds[train], labels[train])
         print(metrics.classification_report(labels[val], model.predict(embeds[val])))
