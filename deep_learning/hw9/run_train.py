@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
 
@@ -6,12 +6,12 @@ import fire
 import numpy as np
 import pandas as pd
 import torch
-import torch.utils.data
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from datasets import StarTrekCharGenerationDataset
 from models import SequenceNet
-from utils import HyperParams, Splits, get_device, Sampler
+from utils import HyperParams, Splits, get_device, Sampler, EarlyStopModelSaverCallback
 
 
 class TrainResult:
@@ -26,7 +26,7 @@ class TrainResult:
         self.weights = weights
 
     def to_dict(self) -> dict:
-        s = copy.deepcopy(self.__dict__)
+        s = deepcopy(self.__dict__)
         s["hparams"] = s["hparams"].__dict__
         return s
 
@@ -35,12 +35,21 @@ class TrainResult:
         s["hparams"] = HyperParams(**s["hparams"])
         return TrainResult(**s)
 
+    def get_metrics(self) -> pd.DataFrame:
+        data = []
+        for h in self.history:
+            metrics: Dict[str, float] = {}
+            for data_split, nested in h.items():
+                if not isinstance(nested, dict):
+                    continue
+                for name, val in nested.items():
+                    metrics[data_split + "_" + name] = val
+            data.append(metrics)
+        return pd.DataFrame(data)
+
     def get_summary(self) -> dict:
-        summary = copy.deepcopy(self.hparams.__dict__)
-        latest: Dict[str, Dict[str, float]] = self.history[-1]
-        for data_split, metrics in latest.items():
-            for key, val in metrics.items():
-                summary[data_split + "_" + key] = val
+        summary = deepcopy(self.hparams.__dict__)
+        summary.update(self.get_metrics().to_dict(orient="records")[-1])
         return summary
 
 
@@ -82,23 +91,24 @@ class ResultsManager:
 
 
 class CharGenerationSystem:
-    def __init__(
-        self, hparams: HyperParams,
-    ):
+    def __init__(self, hparams: HyperParams):
         self.hparams = hparams
         self.data_splits = [Splits.train, Splits.val, Splits.test]
         self.device = get_device(verbose=self.hparams.verbose)
-        self.datasets = {s: self.get_dataset(s) for s in self.data_splits}
+        self.datasets: Dict[str, StarTrekCharGenerationDataset] = {
+            s: self.get_dataset(s) for s in self.data_splits
+        }
         self.vocab_size = len(self.datasets[Splits.train].vocab)
-        self.net = SequenceNet(n_vocab=self.vocab_size, hparams=hparams,)
+        self.net = SequenceNet(n_vocab=self.vocab_size, hparams=hparams)
+        self.net = self.net.to(self.device)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=hparams.lr)
 
     def get_dataset(self, data_split: str):
         return StarTrekCharGenerationDataset(self.hparams, data_split)
 
-    def get_loader(self, data_split: str, bs: int) -> torch.utils.data.DataLoader:
-        return torch.utils.data.DataLoader(
+    def get_loader(self, data_split: str, bs: int) -> DataLoader:
+        return DataLoader(
             dataset=self.datasets[data_split],
             batch_size=bs,
             shuffle=(data_split == Splits.train),
@@ -152,27 +162,21 @@ class CharGenerationSystem:
                         loss = np.round(np.mean(loss_history), decimals=3)
                         return dict(loss=loss, acc=acc)
 
-    def run_train(self, early_stop=True) -> TrainResult:
-        self.net.to(self.device)
-        best_loss = 1e9
-        best_weights = {}
-
+    def run_train(self) -> TrainResult:
+        monitor = EarlyStopModelSaverCallback(self.net)
         history = []
         for _ in tqdm(range(self.hparams.epochs), disable=(not self.hparams.verbose)):
             hist = {s: self.run_epoch(s) for s in self.data_splits}
+            hist.update(dict(quotes=self.sample_quotes()))
             history.append(hist)
             if self.hparams.verbose:
                 print(hist)
-            loss = hist[Splits.val]["loss"]
-            if loss < best_loss:
-                best_loss = loss
-                best_weights = copy.deepcopy(self.net.state_dict())
-            elif early_stop:
+            if monitor.check_stop(hist[Splits.val]["loss"]):
                 break
             if self.hparams.dev_run and len(history) >= 3:
                 break
 
-        return TrainResult(self.hparams, history, best_weights)
+        return TrainResult(self.hparams, history, monitor.best_weights)
 
     @classmethod
     def load(cls, hparams: HyperParams, weights: Dict[str, torch.Tensor]):
@@ -190,21 +194,27 @@ class CharGenerationSystem:
         token_start = dataset.vocab.stoi[dataset.vocab.start]
         x = torch.from_numpy(np.array([token_start] * num)).long()
         x = x.reshape(num, 1)
+        x = x.to(self.device)
 
         self.net.eval()
         with torch.no_grad():
             states = None
             history = [x]
-            for _ in tqdm(range(length)):
+            for _ in tqdm(range(length), disable=(not self.hparams.verbose)):
                 n_look_back = length if self.hparams.model == "tcn" else 1
                 inputs = torch.cat(history[-n_look_back:], dim=-1)
                 logits, states = self.net(inputs, states)
                 next_logits = logits[:, -1, :]
                 history.append(Sampler.temperature(next_logits))
-            history = history[1:]  # Omit start tokens
-            outputs = torch.stack(history).squeeze().transpose(0, 1)
 
+        history = history[1:]  # Omit start tokens
+        outputs = torch.stack(history).squeeze().transpose(0, 1)
+        outputs = outputs.cpu()
         return [dataset.sequence_to_text(outputs[i, :]) for i in range(num)]
+
+    def sample_quotes(self, num=5):
+        dataset = self.datasets[Splits.train]
+        return dataset.extract_quotes(self.sample(length=200))[:num]
 
 
 def enumerate_grid(grid: Dict[str, list]) -> List[dict]:
@@ -213,7 +223,7 @@ def enumerate_grid(grid: Dict[str, list]) -> List[dict]:
         temp = []
         for d in dicts:
             for val in values:
-                d = copy.deepcopy(d)
+                d = deepcopy(d)
                 d[key] = val
                 temp.append(d)
         dicts = temp
@@ -225,10 +235,8 @@ def search_hparams(path, dev_run) -> HyperParams:
     grid = dict(
         model=["lstm", "gru", "tcn"],
         n_layers=[1, 2, 3],
-        dropout=[0.0, 0.2],
         n_hidden=[128, 256],
-        bs=[16, 32, 128, 256, 512],
-        lr=[1e-2, 1e-3, 1e-4],
+        bs=[32, 128, 512],
     )
     for kwargs in tqdm(enumerate_grid(grid)):
         hparams = HyperParams(epochs=1, verbose=False, dev_run=dev_run, **kwargs)

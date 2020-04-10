@@ -1,4 +1,5 @@
-from typing import List
+from copy import deepcopy
+from typing import List, Dict
 
 import torch
 from sklearn import model_selection
@@ -52,7 +53,7 @@ class Splits:
     test = "test"
 
     @classmethod
-    def check_valid(cls, x: str) -> bool:
+    def check_split(cls, x: str) -> bool:
         return x in {cls.train, cls.val, cls.test}
 
 
@@ -143,3 +144,23 @@ class Sampler:
         indices = (cumsum < p).float().sum(dim=-1, keepdim=True).long()
         thresholds = logits.gather(dim=-1, index=indices)
         return cls.sample(logits, thresholds)
+
+
+class EarlyStopModelSaverCallback:
+    def __init__(self, net: torch.nn.Module, patience=3):
+        self.net = net
+        self.patience = patience
+        self.best_loss = 1e9
+        self.best_weights: Dict[str, torch.Tensor] = {}
+        self.count = 0
+
+    def check_stop(self, loss: float) -> bool:
+        if loss < self.best_loss:
+            self.best_loss = loss
+            self.best_weights = deepcopy(self.net.state_dict())
+            self.count = 0
+        else:
+            self.count += 1
+            if self.count > self.patience:
+                return True
+        return False

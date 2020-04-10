@@ -4,16 +4,16 @@ from typing import List
 
 import numpy as np
 import torch
-import torch.utils.data
+from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
 from tqdm import tqdm
 
 from utils import HyperParams, Splits, Vocab, shuffle_multi_split
 
 
-class StarTrekCharGenerationDataset(torch.utils.data.Dataset):
+class StarTrekCharGenerationDataset(Dataset):
     def __init__(self, hparams: HyperParams, data_split: str, sep_line="\n"):
-        assert Splits.check_valid(data_split)
+        assert Splits.check_split(data_split)
         self.hparams = hparams
         self.root = Path(self.hparams.root)
         self.data_split = data_split

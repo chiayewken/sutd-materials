@@ -97,7 +97,7 @@ def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
     to load any of them.
 
     Inputs:
-    - path: String giving path to the directory to load.
+    - path_results: String giving path_results to the directory to load.
     - dtype: numpy datatype used to load the data.
     - subtract_mean: Whether to subtract the mean training image.
 
@@ -222,7 +222,7 @@ def load_models(models_dir):
     will be skipped.
 
     Inputs:
-    - models_dir: String giving the path to a directory containing model files.
+    - models_dir: String giving the path_results to a directory containing model files.
       Each model file is a pickled dictionary with a 'model' field.
 
     Returns:
