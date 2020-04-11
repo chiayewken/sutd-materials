@@ -1,5 +1,9 @@
 # Learning to learn robust intent classification
-
+## Usage
+```
+pip install -r requirements.txt
+python reptile.py
+```
 ## Introduction
 Dialog systems such as chat-bots allow humans to naturally interact with digital systems.
 Concretely, intent classification aims to categorize dialog text into a fixed 

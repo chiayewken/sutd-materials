@@ -1,26 +1,69 @@
 import operator
 import time
+from collections import Iterable
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from sklearn import model_selection
+from tqdm import tqdm
+
+
+class HyperParams:
+    def __init__(
+        self,
+        root="temp",
+        num_ways=5,
+        num_shots=5,
+        num_shots_test=5,
+        lr_inner=1e-3,
+        lr_outer=1.0,
+        steps_inner=5,
+        steps_outer=1000,
+        steps_val=50,
+        bs_inner=10,
+        bs_outer=5,
+        num_hidden=64,
+        num_layers=3,
+    ):
+        # Data
+        self.root = root
+        self.num_ways = num_ways
+        self.num_shots = num_shots
+        self.num_shots_test = num_shots_test
+
+        # Training
+        self.lr_inner = lr_inner
+        self.lr_outer = lr_outer
+        self.steps_inner = steps_inner
+        self.steps_outer = steps_outer
+        self.steps_val = steps_val
+        self.bs_inner = bs_inner
+        self.bs_outer = bs_outer
+
+        # Model
+        self.num_hidden = num_hidden
+        self.num_layers = num_layers
+        print(vars(self))
+
+
+def generate(iterable: Iterable, limit: int = None, show_progress=False):
+    counter = 0
+    with tqdm(total=limit, disable=(not show_progress)) as progress_bar:
+        while True:
+            for item in iterable:
+                if counter >= limit:
+                    return
+                progress_bar.update(1)
+                counter += 1
+                yield item
 
 
 def set_random_state(seed=0):
     rng = np.random.RandomState(seed)
     torch.manual_seed(seed)
     return rng
-
-
-def acc_score(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-    preds: torch.Tensor
-    if logits.shape[-1] == 1:
-        preds = logits.sigmoid().round()
-    else:
-        preds = torch.argmax(logits, dim=-1)
-    return (preds == targets).float().mean()
 
 
 def get_device():
@@ -129,9 +172,7 @@ def normalize(items: list) -> list:
     return [item / total for item in items]
 
 
-def shuffle_multi_split(
-    items: list, fractions=(0.8, 0.1, 0.1), seed=42, eps=1e-6
-) -> list:
+def shuffle_multi_split(items, fractions=(0.8, 0.1, 0.1), seed=42, eps=1e-6):
     assert abs(sum(fractions) - 1) < eps
     assert len(fractions) > 0
     if len(fractions) == 1:
@@ -140,8 +181,8 @@ def shuffle_multi_split(
     part_first, part_rest = model_selection.train_test_split(
         items, train_size=fractions[0], random_state=seed
     )
-    parts_all = [part_first] + shuffle_multi_split(
+    items_split = [part_first] + shuffle_multi_split(
         part_rest, normalize(fractions[1:]), seed
     )
-    assert len(items) == sum(map(len, parts_all))
-    return parts_all
+    assert len(items) == sum(map(len, items_split))
+    return items_split

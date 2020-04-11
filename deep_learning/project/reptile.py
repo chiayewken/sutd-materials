@@ -4,14 +4,12 @@ from typing import Dict, List, Tuple
 import torch
 import torchmeta
 from torch.utils.data import DataLoader, TensorDataset
-from tqdm import tqdm
 
 from datasets import (
     OmniglotMetaLoader,
-    IntentMetaLoader,
+    IntentEmbedBertMetaLoader,
     Splits,
     MetaBatch,
-    MetaDataParams,
 )
 from models import ConvClassifier, LinearClassifier
 from utils import (
@@ -20,7 +18,8 @@ from utils import (
     MetricsTracker,
     get_device,
     set_random_state,
-    acc_score,
+    HyperParams,
+    generate,
 )
 
 
@@ -69,28 +68,6 @@ class ReptileSGD:
         self.net.load_state_dict(weights_new.state)
 
 
-class HyperParams(MetaDataParams):
-    def __init__(
-        self,
-        lr_inner=1e-3,
-        lr_outer=1.0,
-        steps_inner=5,
-        steps_outer=1000,
-        steps_val=50,
-        bs_inner=10,
-        bs_outer=5,
-        **kwargs
-    ):
-        self.lr_inner = lr_inner
-        self.lr_outer = lr_outer
-        self.steps_inner = steps_inner
-        self.steps_outer = steps_outer
-        self.steps_val = steps_val
-        self.bs_inner = bs_inner
-        self.bs_outer = bs_outer
-        super().__init__(bs=bs_outer, **kwargs)
-
-
 class ReptileSystem:
     """
     The Reptile meta-learning algorithm was invented by OpenAI
@@ -99,13 +76,13 @@ class ReptileSystem:
     System to take in meta-learning data and any kind of model
     and run Reptile meta-learning training loop
     The objective of meta-learning is not to master any single task
-    but instead to obtain a system that can quickly adapt to a new task
-    using a small number of training steps and data, like a human
+    but instead to obtain x1 system that can quickly adapt to x1 new task
+    using x1 small number of training steps and data, like x1 human
 
     Reptile pseudo-code:
     Initialize initial weights, w
     For iterations:
-        Randomly sample a task T
+        Randomly sample x1 task T
         Perform k steps of SGD on T, now having weights, w_after
         Update w = w - learn_rate * (w - w_after)
     """
@@ -125,7 +102,7 @@ class ReptileSystem:
         self.criterion = torch.nn.CrossEntropyLoss()
         self.opt_inner = torch.optim.SGD(self.net.parameters(), lr=hparams.lr_inner)
         lr_schedule = LinearDecayLR(hparams.lr_outer, hparams.steps_outer)
-        self.opt_outer = ReptileSGD(self.net, lr_schedule, num_accum=hparams.bs)
+        self.opt_outer = ReptileSGD(self.net, lr_schedule, num_accum=hparams.bs_outer)
         self.batch_val = next(iter(self.loaders[Splits.val]))
 
     def get_gradient_context(self, is_train: bool) -> torch.autograd.grad_mode:
@@ -136,6 +113,15 @@ class ReptileSystem:
             self.net.eval()
             return torch.no_grad
 
+    @staticmethod
+    def get_accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        preds: torch.Tensor
+        if logits.shape[-1] == 1:
+            preds = logits.sigmoid().round()
+        else:
+            preds = torch.argmax(logits, dim=-1)
+        return (preds == targets).float().mean()
+
     def run_batch(
         self, batch: Tuple[torch.Tensor, torch.LongTensor], is_train=True
     ) -> Dict[str, float]:
@@ -145,7 +131,7 @@ class ReptileSystem:
                 self.opt_inner.zero_grad()
             outputs = self.net(inputs)
             loss = self.criterion(outputs, targets)
-            acc = acc_score(outputs, targets)
+            acc = self.get_accuracy(outputs, targets)
             if is_train:
                 loss.backward()
                 self.opt_inner.step()
@@ -158,12 +144,8 @@ class ReptileSystem:
         ds = TensorDataset(x_train, y_train)
         loader = DataLoader(ds, bs, shuffle=True)
 
-        i = 0
-        while i < steps:
-            for batch in loader:
-                self.run_batch(batch, is_train=True)
-                i += 1
-
+        for batch in generate(loader, limit=steps):
+            self.run_batch(batch, is_train=True)
         return self.run_batch((x_test, y_test), is_train=False)
 
     def loop_outer(self):
@@ -172,10 +154,7 @@ class ReptileSystem:
         loader = self.loaders[Splits.train]
         tracker = MetricsTracker(prefix=Splits.train)
 
-        for i, batch in enumerate(tqdm(loader, total=steps)):
-            if i > steps:
-                break
-
+        for i, batch in enumerate(generate(loader, limit=steps, show_progress=True)):
             self.opt_outer.zero_grad()
             for task in MetaBatch(batch, self.device).get_tasks():
                 metrics = self.loop_inner(
@@ -217,17 +196,15 @@ class ReptileSystem:
 def run_omniglot(root: str):
     hparams = HyperParams(root=root)
     loaders = {s: OmniglotMetaLoader(hparams, s) for s in ["train", "val"]}
-    net = ConvClassifier(num_in=1, num_out=hparams.num_ways)
+    net = ConvClassifier(num_in=1, hp=hparams)
     system = ReptileSystem(hparams, loaders, net)
     system.run_train()
 
 
 def run_intent(root: str):
     hparams = HyperParams(root=root, steps_outer=500, steps_inner=50, bs_inner=10)
-    loaders = {s: IntentMetaLoader(hparams, s) for s in ["train", "val"]}
-    net = LinearClassifier(
-        num_in=loaders[Splits.train].embedder.size_embed, num_out=hparams.num_ways
-    )
+    loaders = {s: IntentEmbedBertMetaLoader(hparams, s) for s in ["train", "val"]}
+    net = LinearClassifier(num_in=loaders[Splits.train].embed_size, hp=hparams)
     system = ReptileSystem(hparams, loaders, net)
     system.run_train()
 

@@ -1,5 +1,4 @@
 import json
-from copy import deepcopy
 from pathlib import Path
 from typing import Tuple, List, Dict, Iterable
 
@@ -13,14 +12,14 @@ from sklearn import metrics, linear_model
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url, extract_archive
 
-from utils import get_device, shuffle_multi_split
+from utils import get_device, shuffle_multi_split, HyperParams
 
 
 class SentenceBERT(sentence_transformers.SentenceTransformer):
     def __init__(self, cache_dir="cache"):
         self.cache_dir = Path(cache_dir)
         self.dir_model = self.download()
-        self.size_embed = 768
+        self.embed_size = 768
         super().__init__(str(self.dir_model), device=get_device())
 
     def download(self):
@@ -43,7 +42,7 @@ class SentenceBERT(sentence_transformers.SentenceTransformer):
         if not path_cache.exists():
             np.save(str(path_cache), get_embeds())
         embeds = np.load(str(path_cache))
-        assert embeds.shape == (len(texts), self.size_embed)
+        assert embeds.shape == (len(texts), self.embed_size)
         return embeds
 
 
@@ -56,28 +55,22 @@ class Splits:
     def check(cls, data_split: str) -> bool:
         return data_split in {cls.train, cls.val, cls.test}
 
-
-class MetaDataParams:
-    """Hyperparameters for meta learning data"""
-
-    def __init__(
-        self, root="temp", bs=10, num_ways=5, num_shots=5, num_shots_test=5,
-    ):
-        self.root = root
-        self.bs = bs
-        self.num_ways = num_ways
-        self.num_shots = num_shots
-        self.num_shots_test = num_shots_test
-        print(vars(self))
+    @classmethod
+    def apply(cls, items, data_split: str, fractions=(0.8, 0.1, 0.1)):
+        assert len(fractions) == 3
+        assert cls.check(data_split)
+        indices_split = shuffle_multi_split(items, fractions)
+        splits = [Splits.train, Splits.val, Splits.test]
+        return indices_split[splits.index(data_split)]
 
 
 class OmniglotMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
-    def __init__(self, params: MetaDataParams, data_split: str):
+    def __init__(self, hparams: HyperParams, data_split: str):
         assert Splits.check(data_split)
         self.data_split = data_split
-        self.params = params
+        self.params = hparams
         self.dataset, self.split_dataset = self.get_dataset()
-        super().__init__(self.split_dataset, params.bs, num_workers=2)
+        super().__init__(self.split_dataset, hparams.bs_outer, num_workers=2)
         self.plot_sample()
 
     def get_dataset(self, image_size=28):
@@ -120,6 +113,8 @@ class OmniglotMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
 
 
 class SingleLabelDataset(torchmeta.utils.data.Dataset):
+    """Helper class for meta-learning, consists of samples from only one label"""
+
     def __init__(self, index, data, label, transform=None, target_transform=None):
         super().__init__(index, transform=transform, target_transform=target_transform)
         self.data = data
@@ -139,7 +134,92 @@ class SingleLabelDataset(torchmeta.utils.data.Dataset):
         return x, y
 
 
+class ClassDataset(torchmeta.utils.data.ClassDataset):
+    """Helper class for meta-learning, each data "sample" is a SingleLabelDataset"""
+
+    def __init__(self, dataset: Dataset, meta_split: str, transform=None):
+        super().__init__(meta_split=meta_split)
+        self.transform = transform
+        self.full_dataset = dataset
+        self.datasets = self.split_datasets()
+
+    def split_datasets(self) -> List[SingleLabelDataset]:
+        label2data = {}
+        for i in range(len(self.full_dataset)):
+            x, y = self.full_dataset[i]
+            if y not in label2data.keys():
+                label2data[y] = []
+            label2data[y].append(x)
+
+        labels_keep = Splits.apply(sorted(label2data.keys()), self.meta_split)
+        datasets = []
+        for j, (label, data) in enumerate(label2data.items()):
+            if label not in labels_keep:
+                continue
+            datasets.append(SingleLabelDataset(j, data, label, self.transform))
+        return datasets
+
+    @property
+    def num_classes(self) -> int:
+        return len(self.datasets)
+
+    def __getitem__(self, i: int):
+        return self.datasets[i]
+
+
+class MetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
+    """Data loader class for meta-learning, samples batches of episodes/tasks"""
+
+    def __init__(
+        self, dataset: Dataset, data_split: str, hparams: HyperParams, transform=None
+    ):
+        assert Splits.check(data_split)
+        self.transform = transform
+        self.ds_orig = dataset
+        self.ds_class = ClassDataset(self.ds_orig, data_split, transform)
+        self.ds_meta = torchmeta.utils.data.CombinationMetaDataset(
+            dataset=self.ds_class,
+            num_classes_per_task=hparams.num_ways,
+            target_transform=torchmeta.transforms.Categorical(hparams.num_ways),
+        )
+        self.ds_split = torchmeta.transforms.ClassSplitter(
+            self.ds_meta,
+            shuffle=(data_split == Splits.train),
+            num_train_per_class=hparams.num_shots,
+            num_test_per_class=hparams.num_shots_test,
+        )
+        super().__init__(
+            dataset=self.ds_split,
+            batch_size=hparams.bs_outer,
+            shuffle=(data_split == Splits.train),
+            num_workers=2,
+        )
+
+
+class MetaBatch:
+    """Convenience class to process batches of episodes/tasks"""
+
+    def __init__(
+        self,
+        raw_batch: Dict[str, Tuple[torch.Tensor, torch.Tensor]],
+        device: torch.device,
+    ):
+        self.device = device
+        self.x_train, self.y_train = self.to_device(raw_batch["train"])
+        self.x_test, self.y_test = self.to_device(raw_batch["test"])
+
+    def get_tasks(self,) -> List[List[torch.Tensor]]:
+        batch_size = self.x_train.shape[0]
+        tensors = [self.x_train, self.y_train, self.x_test, self.y_test]
+        return [[t[i] for t in tensors] for i in range(batch_size)]
+
+    def to_device(self, tensors: Iterable[torch.Tensor]) -> List[torch.Tensor]:
+        return [t.to(self.device) for t in tensors]
+
+
 class IntentDataset(Dataset):
+    """Intent text classification"""
+
     def __init__(self, root: str, remove_oos_orig=True):
         self.remove_oos_orig = remove_oos_orig
         self.root = Path(root)
@@ -180,128 +260,44 @@ class IntentDataset(Dataset):
         return len(self.texts)
 
 
-class IntentClassDataset(torchmeta.utils.data.ClassDataset):
-    def __init__(self, orig_dataset: IntentDataset, meta_split: str, transform=None):
-        super().__init__(meta_split=meta_split)
-        self.orig_dataset = orig_dataset
-        self.transform = transform
-        self.label2texts = self.process_data()
-        self.labels = sorted(self.label2texts.keys())
+class IntentEmbedBertDataset(IntentDataset):
+    """Use pre-trained BERT language model to obtain sentence embeddings as pre-processing"""
 
-    def process_data(self) -> Dict[str, List[str]]:
-        unique_labels = sorted(set(self.orig_dataset.labels))
-        splits = {Splits.train: 0.8, Splits.val: 0.1, Splits.test: 0.1}
-        labels_split = shuffle_multi_split(
-            items=unique_labels, fractions=list(splits.values())
-        )
-        i_split = list(splits.keys()).index(self.meta_split)
-        labels = labels_split[i_split]
-        label2texts = {label: [] for label in labels}
-        for i in range(len(self.orig_dataset)):
-            text, label = self.orig_dataset[i]
-            if label in label2texts.keys():
-                label2texts[label].append(text)
-        return label2texts
-
-    def __getitem__(self, i) -> SingleLabelDataset:
-        label = self.labels[i]
-        return SingleLabelDataset(
-            index=i,
-            data=self.label2texts[label],
-            label=label,
-            transform=self.get_transform(i, self.transform),
-            target_transform=self.get_target_transform(i),
-        )
-
-    @property
-    def num_classes(self) -> int:
-        return len(self.labels)
-
-    def create_subset_dataset(self):
-        label_set = set(self.labels)
-        dataset = deepcopy(self.orig_dataset)
-        indices = [i for i, label in enumerate(dataset.labels) if label in label_set]
-        dataset.texts = [dataset.texts[i] for i in indices]
-        dataset.labels = [dataset.labels[i] for i in indices]
-        return dataset
-
-
-class IntentMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
-    def __init__(self, params: MetaDataParams, data_split: str, try_embeds=False):
-        assert Splits.check(data_split)
-        self.data_split = data_split
-        self.params = params
-        self.orig_dataset = IntentDataset(self.params.root)
+    def __init__(self, root: str, remove_oos_orig=True, try_embeds=False):
+        super().__init__(root, remove_oos_orig)
         self.embedder = SentenceBERT()
-        self.transform = self.get_transform(self.orig_dataset.texts)
-        self.class_dataset, self.meta_dataset, self.split_dataset = self.get_datasets()
-        self.embeds = self.get_embeds()
-        super().__init__(
-            dataset=self.split_dataset,
-            batch_size=params.bs,
-            shuffle=(self.data_split == Splits.train),
-            num_workers=2,
-        )
+        self.embeds = self.embedder.embed_texts(self.texts)
         if try_embeds:
             self.try_embeds_fit_simple_classifier()
 
-    def get_embeds(self) -> np.ndarray:
-        dataset = self.class_dataset.create_subset_dataset()
-        return np.stack([self.transform(t) for t in dataset.texts])
-
-    def get_transform(self, texts: List[str]):
-        embeds = self.embedder.embed_texts(texts)
-        text2embed = {texts[i]: embeds[i] for i in range(len(texts))}
-        return lambda x: text2embed[x]
-
-    def get_datasets(self):
-        class_dataset = IntentClassDataset(
-            self.orig_dataset, self.data_split, transform=self.transform
-        )
-        meta_dataset = torchmeta.utils.data.CombinationMetaDataset(
-            dataset=class_dataset,
-            num_classes_per_task=self.params.num_ways,
-            target_transform=torchmeta.transforms.Categorical(self.params.num_ways),
-        )
-        split_dataset = torchmeta.transforms.ClassSplitter(
-            meta_dataset,
-            shuffle=(self.data_split == Splits.train),
-            num_train_per_class=self.params.num_shots,
-            num_test_per_class=self.params.num_shots_test,
-        )
-        return class_dataset, meta_dataset, split_dataset
+    def __getitem__(self, i: int) -> Tuple[np.ndarray, str]:
+        return self.embeds[i], self.labels[i]
 
     def try_embeds_fit_simple_classifier(self):
-        embeds = np.stack([self.transform(text) for text in self.orig_dataset.texts])
-        labels = np.array(self.orig_dataset.labels)
-        train, val, test = shuffle_multi_split(list(range(len(embeds))))
+        def get_xy(data_split: str):
+            indices = Splits.apply(list(range(len(self))), data_split)
+            x = self.embeds
+            y = np.array(self.labels)
+            return x[indices], y[indices]
+
+        x_train, y_train = get_xy(Splits.train)
+        x_val, y_val = get_xy(Splits.val)
         model = linear_model.RidgeClassifier()
-        model.fit(embeds[train], labels[train])
-        print(metrics.classification_report(labels[val], model.predict(embeds[val])))
+        model.fit(x_train, y_train)
+        print(metrics.classification_report(y_val, model.predict(x_val)))
 
 
-class MetaBatch:
-    def __init__(
-        self,
-        raw_batch: Dict[str, Tuple[torch.Tensor, torch.Tensor]],
-        device: torch.device,
-    ):
-        self.device = device
-        self.x_train, self.y_train = self.to_device(raw_batch["train"])
-        self.x_test, self.y_test = self.to_device(raw_batch["test"])
-
-    def get_tasks(self,) -> List[List[torch.Tensor]]:
-        batch_size = self.x_train.shape[0]
-        tensors = [self.x_train, self.y_train, self.x_test, self.y_test]
-        return [[t[i] for t in tensors] for i in range(batch_size)]
-
-    def to_device(self, tensors: Iterable[torch.Tensor]) -> List[torch.Tensor]:
-        return [t.to(self.device) for t in tensors]
+class IntentEmbedBertMetaLoader(MetaLoader):
+    def __init__(self, hparams: HyperParams, data_split: str):
+        dataset = IntentEmbedBertDataset(root=hparams.root)
+        self.embed_size = dataset.embedder.embed_size
+        super().__init__(dataset, data_split, hparams)
 
 
 def main():
-    IntentMetaLoader(MetaDataParams(), data_split=Splits.train)
-    OmniglotMetaLoader(MetaDataParams(), data_split=Splits.train)
+    # Testing purposes only
+    IntentEmbedBertMetaLoader(HyperParams(), data_split=Splits.train)
+    OmniglotMetaLoader(HyperParams(), data_split=Splits.train)
 
 
 if __name__ == "__main__":
