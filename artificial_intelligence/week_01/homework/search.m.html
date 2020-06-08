@@ -1,0 +1,5409 @@
+<!doctype html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+    <title>search API documentation</title>
+    <meta name="description" content="Search (Chapters 3-4)
+
+The way to use this code is to subclass Problem to create a class of problems..." />
+
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
+  
+  <style type="text/css">
+  
+* {
+  box-sizing: border-box;
+}
+/*! normalize.css v1.1.1 | MIT License | git.io/normalize */
+
+/* ==========================================================================
+   HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+    display: block;
+}
+
+/**
+ * Correct `inline-block` display not defined in IE 6/7/8/9 and Firefox 3.
+ */
+
+audio,
+canvas,
+video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+}
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Firefox 3, and Safari 4.
+ * Known issue: no IE 6 support.
+ */
+
+[hidden] {
+    display: none;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/**
+ * 1. Prevent system color scheme's background color being used in Firefox, IE,
+ *    and Opera.
+ * 2. Prevent system color scheme's text color being used in Firefox, IE, and
+ *    Opera.
+ * 3. Correct text resizing oddly in IE 6/7 when body `font-size` is set using
+ *    `em` units.
+ * 4. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+html {
+    background: #fff; /* 1 */
+    color: #000; /* 2 */
+    font-size: 100%; /* 3 */
+    -webkit-text-size-adjust: 100%; /* 4 */
+    -ms-text-size-adjust: 100%; /* 4 */
+}
+
+/**
+ * Address `font-family` inconsistency between `textarea` and other form
+ * elements.
+ */
+
+html,
+button,
+input,
+select,
+textarea {
+    font-family: sans-serif;
+}
+
+/**
+ * Address margins handled incorrectly in IE 6/7.
+ */
+
+body {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/**
+ * Address `outline` inconsistency between Chrome and other browsers.
+ */
+
+a:focus {
+    outline: thin dotted;
+}
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/**
+ * Address font sizes and margins set differently in IE 6/7.
+ * Address font sizes within `section` and `article` in Firefox 4+, Safari 5,
+ * and Chrome.
+ */
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: 0.83em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: 1em 0;
+}
+
+h4 {
+    font-size: 1em;
+    margin: 1.33em 0;
+}
+
+h5 {
+    font-size: 0.83em;
+    margin: 1.67em 0;
+}
+
+h6 {
+    font-size: 0.67em;
+    margin: 2.33em 0;
+}
+
+/**
+ * Address styling not present in IE 7/8/9, Safari 5, and Chrome.
+ */
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 3+, Safari 4/5, and Chrome.
+ */
+
+b,
+strong {
+    font-weight: bold;
+}
+
+blockquote {
+    margin: 1em 40px;
+}
+
+/**
+ * Address styling not present in Safari 5 and Chrome.
+ */
+
+dfn {
+    font-style: italic;
+}
+
+/**
+ * Address differences between Firefox and other browsers.
+ * Known issue: no IE 6/7 normalization.
+ */
+
+hr {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 6/7/8/9.
+ */
+
+mark {
+    background: #ff0;
+    color: #000;
+}
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+p,
+pre {
+    margin: 1em 0;
+}
+
+/**
+ * Correct font family set oddly in IE 6, Safari 4/5, and Chrome.
+ */
+
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    _font-family: 'courier new', monospace;
+    font-size: 1em;
+}
+
+/**
+ * Improve readability of pre-formatted text in all browsers.
+ */
+
+pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/**
+ * Address CSS quotes not supported in IE 6/7.
+ */
+
+q {
+    quotes: none;
+}
+
+/**
+ * Address `quotes` property not supported in Safari 4.
+ */
+
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+
+small {
+    font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+/**
+ * Address margins set differently in IE 6/7.
+ */
+
+dl,
+menu,
+ol,
+ul {
+    margin: 1em 0;
+}
+
+dd {
+    margin: 0 0 0 40px;
+}
+
+/**
+ * Address paddings set differently in IE 6/7.
+ */
+
+menu,
+ol,
+ul {
+    padding: 0 0 0 40px;
+}
+
+/**
+ * Correct list images handled incorrectly in IE 7.
+ */
+
+nav ul,
+nav ol {
+    list-style: none;
+    list-style-image: none;
+}
+
+/* ==========================================================================
+   Embedded content
+   ========================================================================== */
+
+/**
+ * 1. Remove border when inside `a` element in IE 6/7/8/9 and Firefox 3.
+ * 2. Improve image quality when scaled in IE 7.
+ */
+
+img {
+    border: 0; /* 1 */
+    -ms-interpolation-mode: bicubic; /* 2 */
+}
+
+/**
+ * Correct overflow displayed oddly in IE 9.
+ */
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Figures
+   ========================================================================== */
+
+/**
+ * Address margin not present in IE 6/7/8/9, Safari 5, and Opera 11.
+ */
+
+figure {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+/**
+ * Correct margin displayed oddly in IE 6/7.
+ */
+
+form {
+    margin: 0;
+}
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+
+fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: 0.35em 0.625em 0.75em;
+}
+
+/**
+ * 1. Correct color not being inherited in IE 6/7/8/9.
+ * 2. Correct text not wrapping in Firefox 3.
+ * 3. Correct alignment displayed oddly in IE 6/7.
+ */
+
+legend {
+    border: 0; /* 1 */
+    padding: 0;
+    white-space: normal; /* 2 */
+    *margin-left: -7px; /* 3 */
+}
+
+/**
+ * 1. Correct font size not being inherited in all browsers.
+ * 2. Address margins set differently in IE 6/7, Firefox 3+, Safari 5,
+ *    and Chrome.
+ * 3. Improve appearance and consistency in all browsers.
+ */
+
+button,
+input,
+select,
+textarea {
+    font-size: 100%; /* 1 */
+    margin: 0; /* 2 */
+    vertical-align: baseline; /* 3 */
+    *vertical-align: middle; /* 3 */
+}
+
+/**
+ * Address Firefox 3+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+button,
+input {
+    line-height: normal;
+}
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Chrome, Safari 5+, and IE 6+.
+ * Correct `select` style inheritance in Firefox 4+ and Opera.
+ */
+
+button,
+select {
+    text-transform: none;
+}
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ * 4. Remove inner spacing in IE 7 without affecting normal text inputs.
+ *    Known issue: inner spacing remains in IE 6.
+ */
+
+button,
+html input[type="button"], /* 1 */
+input[type="reset"],
+input[type="submit"] {
+    -webkit-appearance: button; /* 2 */
+    cursor: pointer; /* 3 */
+    *overflow: visible;  /* 4 */
+}
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+
+button[disabled],
+html input[disabled] {
+    cursor: default;
+}
+
+/**
+ * 1. Address box sizing set to content-box in IE 8/9.
+ * 2. Remove excess padding in IE 8/9.
+ * 3. Remove excess padding in IE 7.
+ *    Known issue: excess padding remains in IE 6.
+ */
+
+input[type="checkbox"],
+input[type="radio"] {
+    box-sizing: border-box; /* 1 */
+    padding: 0; /* 2 */
+    *height: 13px; /* 3 */
+    *width: 13px; /* 3 */
+}
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ *    (include `-moz` to future-proof).
+ */
+
+input[type="search"] {
+    -webkit-appearance: textfield; /* 1 */
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; /* 2 */
+    box-sizing: content-box;
+}
+
+/**
+ * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * on OS X.
+ */
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+/**
+ * Remove inner padding and border in Firefox 3+.
+ */
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/**
+ * 1. Remove default vertical scrollbar in IE 6/7/8/9.
+ * 2. Improve readability and alignment in all browsers.
+ */
+
+textarea {
+    overflow: auto; /* 1 */
+    vertical-align: top; /* 2 */
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+  </style>
+
+  <style type="text/css">
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+  body {
+    background: #fff;
+    font-family: "Source Sans Pro", "Helvetica Neueue", Helvetica, sans;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6em;
+  }
+  #content {
+    width: 70%;
+    max-width: 850px;
+    float: left;
+    padding: 30px 60px;
+    border-left: 1px solid #ddd;
+  }
+  #sidebar {
+    width: 25%;
+    float: left;
+    padding: 30px;
+    overflow: hidden;
+  }
+  #nav {
+    font-size: 130%;
+    margin: 0 0 15px 0;
+  }
+
+  #top {
+    display: block;
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    font-size: .85em;
+    text-transform: uppercase;
+  }
+
+  #footer {
+    font-size: .75em;
+    padding: 5px 30px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+  }
+    #footer p {
+      margin: 0 0 0 30px;
+      display: inline-block;
+    }
+
+  h1, h2, h3, h4, h5 {
+    font-weight: 300;
+  }
+  h1 {
+    font-size: 2.5em;
+    line-height: 1.1em;
+    margin: 0 0 .50em 0;
+  }
+
+  h2 {
+    font-size: 1.75em;
+    margin: 1em 0 .50em 0;
+  }
+
+  h3 {
+    margin: 25px 0 10px 0;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 105%;
+  }
+
+  a {
+    color: #058;
+    text-decoration: none;
+    transition: color .3s ease-in-out;
+  }
+
+  a:hover {
+    color: #e08524;
+    transition: color .3s ease-in-out;
+  }
+
+  pre, code, .mono, .name {
+    font-family: "Ubuntu Mono", "Cousine", "DejaVu Sans Mono", monospace;
+  }
+
+  .title .name {
+    font-weight: bold;
+  }
+  .section-title {
+    margin-top: 2em;
+  }
+  .ident {
+    color: #900;
+  }
+
+  code {
+    background: #f9f9f9;
+  } 
+
+  pre {
+    background: #fefefe;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 0 #f3f3f3;
+    margin: 0 30px;
+    padding: 15px 30px;
+  }
+
+  .codehilite {
+    margin: 0 30px 10px 30px;
+  }
+
+    .codehilite pre {
+      margin: 0;
+    }
+    .codehilite .err { background: #ff3300; color: #fff !important; } 
+
+  table#module-list {
+    font-size: 110%;
+  }
+
+    table#module-list tr td:first-child {
+      padding-right: 10px;
+      white-space: nowrap;
+    }
+
+    table#module-list td {
+      vertical-align: top;
+      padding-bottom: 8px;
+    }
+
+      table#module-list td p {
+        margin: 0 0 7px 0;
+      }
+
+  .def {
+    display: table;
+  }
+
+    .def p {
+      display: table-cell;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .def p:first-child {
+      white-space: nowrap;
+    }
+
+    .def p:last-child {
+      width: 100%;
+    }
+
+
+  #index {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+    ul#index .class_name {
+      /* font-size: 110%; */
+      font-weight: bold;
+    }
+    #index ul {
+      margin: 0;
+    }
+
+  .item {
+    margin: 0 0 15px 0;
+  }
+
+    .item .class {
+      margin: 0 0 25px 30px;
+    }
+
+      .item .class ul.class_list {
+        margin: 0 0 20px 0;
+      }
+
+    .item .name {
+      background: #fafafa;
+      margin: 0;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 3px;
+      display: inline-block;
+      min-width: 40%;
+    }
+      .item .name:hover {
+        background: #f6f6f6;
+      }
+
+    .item .empty_desc {
+      margin: 0 0 5px 0;
+      padding: 0;
+    }
+
+    .item .inheritance {
+      margin: 3px 0 0 30px;
+    }
+
+    .item .inherited {
+      color: #666;
+    }
+
+    .item .desc {
+      padding: 0 8px;
+      margin: 0;
+    }
+
+      .item .desc p {
+        margin: 0 0 10px 0;
+      }
+
+    .source_cont {
+      margin: 0;
+      padding: 0;
+    }
+
+    .source_link a {
+      background: #ffc300;
+      font-weight: 400;
+      font-size: .75em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 1px 1px 0 #f4b700;
+      
+      padding: 3px 8px;
+      border-radius: 2px;
+      transition: background .3s ease-in-out;
+    }
+      .source_link a:hover {
+        background: #FF7200;
+        text-shadow: none;
+        transition: background .3s ease-in-out;
+      }
+
+    .source {
+      display: none;
+      max-height: 600px;
+      overflow-y: scroll;
+      margin-bottom: 15px;
+    }
+
+      .source .codehilite {
+        margin: 0;
+      }
+
+  .desc h1, .desc h2, .desc h3 {
+    font-size: 100% !important;
+  }
+  .clear {
+    clear: both;
+  }
+
+  @media all and (max-width: 950px) {
+    #sidebar {
+      width: 35%;
+    }
+    #content {
+      width: 65%;
+    }
+  }
+  @media all and (max-width: 650px) {
+    #top {
+      display: none;
+    }
+    #sidebar {
+      float: none;
+      width: auto;
+    }
+    #content {
+      float: none;
+      width: auto;
+      padding: 30px;
+    }
+
+    #index ul {
+      padding: 0;
+      margin-bottom: 15px;
+    }
+    #index ul li {
+      display: inline-block;
+      margin-right: 30px;
+    }
+    #footer {
+      text-align: left;
+    }
+    #footer p {
+      display: block;
+      margin: inherit;
+    }
+  }
+
+  /*****************************/
+
+  </style>
+
+
+  <style type="text/css">
+  
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+}
+
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}
+
+  </style>
+
+  <script type="text/javascript">
+  function toggle(id, $link) {
+    $node = document.getElementById(id);
+    if (!$node)
+    return;
+    if (!$node.style.display || $node.style.display == 'none') {
+    $node.style.display = 'block';
+    $link.innerHTML = 'Hide source &nequiv;';
+    } else {
+    $node.style.display = 'none';
+    $link.innerHTML = 'Show source &equiv;';
+    }
+  }
+  </script>
+</head>
+<body>
+<a href="#" id="top">Top</a>
+
+<div id="container">
+    
+  
+  <div id="sidebar">
+    <h1>Index</h1>
+    <ul id="index">
+    <li class="set"><h3><a href="#header-variables">Module variables</a></h3>
+      
+  <ul>
+    <li class="mono"><a href="#search.ALPHABET">ALPHABET</a></li>
+    <li class="mono"><a href="#search.Fig">Fig</a></li>
+    <li class="mono"><a href="#search.australia">australia</a></li>
+    <li class="mono"><a href="#search.boyan_best">boyan_best</a></li>
+    <li class="mono"><a href="#search.cubes16">cubes16</a></li>
+    <li class="mono"><a href="#search.infinity">infinity</a></li>
+    <li class="mono"><a href="#search.orientations">orientations</a></li>
+    <li class="mono"><a href="#search.romania">romania</a></li>
+  </ul>
+
+    </li>
+
+    <li class="set"><h3><a href="#header-functions">Functions</a></h3>
+      
+  <ul>
+    <li class="mono"><a href="#search.RandomGraph">RandomGraph</a></li>
+    <li class="mono"><a href="#search.UndirectedGraph">UndirectedGraph</a></li>
+    <li class="mono"><a href="#search.and_or_graph_search">and_or_graph_search</a></li>
+    <li class="mono"><a href="#search.astar_search">astar_search</a></li>
+    <li class="mono"><a href="#search.best_first_graph_search">best_first_graph_search</a></li>
+    <li class="mono"><a href="#search.boggle_hill_climbing">boggle_hill_climbing</a></li>
+    <li class="mono"><a href="#search.boggle_neighbors">boggle_neighbors</a></li>
+    <li class="mono"><a href="#search.breadth_first_search">breadth_first_search</a></li>
+    <li class="mono"><a href="#search.breadth_first_tree_search">breadth_first_tree_search</a></li>
+    <li class="mono"><a href="#search.compare_graph_searchers">compare_graph_searchers</a></li>
+    <li class="mono"><a href="#search.compare_searchers">compare_searchers</a></li>
+    <li class="mono"><a href="#search.depth_first_graph_search">depth_first_graph_search</a></li>
+    <li class="mono"><a href="#search.depth_first_tree_search">depth_first_tree_search</a></li>
+    <li class="mono"><a href="#search.depth_limited_search">depth_limited_search</a></li>
+    <li class="mono"><a href="#search.exact_sqrt">exact_sqrt</a></li>
+    <li class="mono"><a href="#search.exp_schedule">exp_schedule</a></li>
+    <li class="mono"><a href="#search.genetic_algorithm">genetic_algorithm</a></li>
+    <li class="mono"><a href="#search.genetic_search">genetic_search</a></li>
+    <li class="mono"><a href="#search.graph_search">graph_search</a></li>
+    <li class="mono"><a href="#search.greedy_best_first_graph_search">greedy_best_first_graph_search</a></li>
+    <li class="mono"><a href="#search.hill_climbing">hill_climbing</a></li>
+    <li class="mono"><a href="#search.iterative_deepening_search">iterative_deepening_search</a></li>
+    <li class="mono"><a href="#search.lrta_star_agent">lrta_star_agent</a></li>
+    <li class="mono"><a href="#search.mutate_boggle">mutate_boggle</a></li>
+    <li class="mono"><a href="#search.online_dfs_agent">online_dfs_agent</a></li>
+    <li class="mono"><a href="#search.print_boggle">print_boggle</a></li>
+    <li class="mono"><a href="#search.random_boggle">random_boggle</a></li>
+    <li class="mono"><a href="#search.recursive_best_first_search">recursive_best_first_search</a></li>
+    <li class="mono"><a href="#search.simulated_annealing">simulated_annealing</a></li>
+    <li class="mono"><a href="#search.tree_search">tree_search</a></li>
+    <li class="mono"><a href="#search.uniform_cost_search">uniform_cost_search</a></li>
+  </ul>
+
+    </li>
+
+    <li class="set"><h3><a href="#header-classes">Classes</a></h3>
+      <ul>
+        <li class="mono">
+        <span class="class_name"><a href="#search.BoggleFinder">BoggleFinder</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.BoggleFinder.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.BoggleFinder.find">find</a></li>
+    <li class="mono"><a href="#search.BoggleFinder.score">score</a></li>
+    <li class="mono"><a href="#search.BoggleFinder.set_board">set_board</a></li>
+    <li class="mono"><a href="#search.BoggleFinder.words">words</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.GAState">GAState</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.GAState.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.GAState.mate">mate</a></li>
+    <li class="mono"><a href="#search.GAState.mutate">mutate</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.Graph">Graph</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.Graph.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.Graph.connect">connect</a></li>
+    <li class="mono"><a href="#search.Graph.connect1">connect1</a></li>
+    <li class="mono"><a href="#search.Graph.get">get</a></li>
+    <li class="mono"><a href="#search.Graph.make_undirected">make_undirected</a></li>
+    <li class="mono"><a href="#search.Graph.nodes">nodes</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.GraphProblem">GraphProblem</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.GraphProblem.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.GraphProblem.actions">actions</a></li>
+    <li class="mono"><a href="#search.GraphProblem.goal_test">goal_test</a></li>
+    <li class="mono"><a href="#search.GraphProblem.h">h</a></li>
+    <li class="mono"><a href="#search.GraphProblem.path_cost">path_cost</a></li>
+    <li class="mono"><a href="#search.GraphProblem.result">result</a></li>
+    <li class="mono"><a href="#search.GraphProblem.value">value</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.InstrumentedProblem">InstrumentedProblem</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.InstrumentedProblem.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.InstrumentedProblem.actions">actions</a></li>
+    <li class="mono"><a href="#search.InstrumentedProblem.goal_test">goal_test</a></li>
+    <li class="mono"><a href="#search.InstrumentedProblem.path_cost">path_cost</a></li>
+    <li class="mono"><a href="#search.InstrumentedProblem.result">result</a></li>
+    <li class="mono"><a href="#search.InstrumentedProblem.value">value</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.NQueensProblem">NQueensProblem</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.NQueensProblem.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.actions">actions</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.conflict">conflict</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.conflicted">conflicted</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.goal_test">goal_test</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.path_cost">path_cost</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.result">result</a></li>
+    <li class="mono"><a href="#search.NQueensProblem.value">value</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.Node">Node</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.Node.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.Node.child_node">child_node</a></li>
+    <li class="mono"><a href="#search.Node.expand">expand</a></li>
+    <li class="mono"><a href="#search.Node.path">path</a></li>
+    <li class="mono"><a href="#search.Node.solution">solution</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.Problem">Problem</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.Problem.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.Problem.actions">actions</a></li>
+    <li class="mono"><a href="#search.Problem.goal_test">goal_test</a></li>
+    <li class="mono"><a href="#search.Problem.path_cost">path_cost</a></li>
+    <li class="mono"><a href="#search.Problem.result">result</a></li>
+    <li class="mono"><a href="#search.Problem.value">value</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.SimpleProblemSolvingAgentProgram">SimpleProblemSolvingAgentProgram</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.SimpleProblemSolvingAgentProgram.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.SimpleProblemSolvingAgentProgram.formulate_goal">formulate_goal</a></li>
+    <li class="mono"><a href="#search.SimpleProblemSolvingAgentProgram.formulate_problem">formulate_problem</a></li>
+    <li class="mono"><a href="#search.SimpleProblemSolvingAgentProgram.search">search</a></li>
+    <li class="mono"><a href="#search.SimpleProblemSolvingAgentProgram.update_state">update_state</a></li>
+  </ul>
+
+        </li>
+        <li class="mono">
+        <span class="class_name"><a href="#search.Wordlist">Wordlist</a></span>
+        
+          
+  <ul>
+    <li class="mono"><a href="#search.Wordlist.__init__">__init__</a></li>
+    <li class="mono"><a href="#search.Wordlist.lookup">lookup</a></li>
+  </ul>
+
+        </li>
+      </ul>
+    </li>
+
+    </ul>
+  </div>
+
+    <article id="content">
+      
+  
+
+  
+
+
+  <header id="section-intro">
+  <h1 class="title"><span class="name">search</span> module</h1>
+  <p>Search (Chapters 3-4)</p>
+<p>The way to use this code is to subclass Problem to create a class of problems,
+then create problem instances and solve them with calls to the various search
+functions.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>ab = GraphProblem('A', 'B', romania)
+breadth_first_tree_search(ab).solution()
+['S', 'F', 'B']
+breadth_first_search(ab).solution()
+['S', 'F', 'B']
+uniform_cost_search(ab).solution()
+['S', 'R', 'P', 'B']
+depth_first_graph_search(ab).solution()
+['T', 'L', 'M', 'D', 'C', 'P', 'B']
+iterative_deepening_search(ab).solution()
+['S', 'F', 'B']
+len(depth_limited_search(ab).solution())
+50
+astar_search(ab).solution()
+['S', 'R', 'P', 'B']
+recursive_best_first_search(ab).solution()
+['S', 'R', 'P', 'B']</p>
+<p>board = list('SARTELNID')
+print_boggle(board)
+S  A  R 
+T  E  L 
+N  I  D 
+f = BoggleFinder(board)
+len(f)
+206
+ignore(' '.join(f.words()))
+ignore(boggle_hill_climbing(list('ABCDEFGHI'), verbose=False))</p>
+</blockquote>
+</blockquote>
+</blockquote>
+  
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search', this);">Show source &equiv;</a></p>
+  <div id="source-search" class="source">
+    <pre><code>"""Search (Chapters 3-4)
+
+The way to use this code is to subclass Problem to create a class of problems,
+then create problem instances and solve them with calls to the various search
+functions."""
+
+from utils import *
+import math, random, sys, time, bisect, string
+
+#______________________________________________________________________________
+
+class Problem(object):
+    """The abstract class for a formal problem.  You should subclass
+    this and implement the methods actions and result, and possibly
+    __init__, goal_test, and path_cost. Then you will create instances
+    of your subclass and solve them with the various search functions."""
+
+    def __init__(self, initial, goal=None):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal.  Your subclass's constructor can add
+        other arguments."""
+        self.initial = initial; self.goal = goal
+
+    def actions(self, state):
+        """Return the actions that can be executed in the given
+        state. The result would typically be a list, but if there are
+        many actions, consider yielding them one at a time in an
+        iterator, rather than building them all at once."""
+        abstract
+
+    def result(self, state, action):
+        """Return the state that results from executing the given
+        action in the given state. The action must be one of
+        self.actions(state)."""
+        abstract
+
+    def goal_test(self, state):
+        """Return True if the state is a goal. The default method compares the
+        state to self.goal, as specified in the constructor. Override this
+        method if checking against a single self.goal is not enough."""
+        return state == self.goal
+
+    def path_cost(self, c, state1, action, state2):
+        """Return the cost of a solution path that arrives at state2 from
+        state1 via action, assuming cost c to get up to state1. If the problem
+        is such that the path doesn't matter, this function will only look at
+        state2.  If the path does matter, it will consider c and maybe state1
+        and action. The default method costs 1 for every step in the path."""
+        return c + 1
+
+    def value(self, state):
+        """For optimization problems, each state has a value.  Hill-climbing
+        and related algorithms try to maximize this value."""
+        abstract
+#______________________________________________________________________________
+
+class Node:
+    """A node in a search tree. Contains a pointer to the parent (the node
+    that this is a successor of) and to the actual state for this node. Note
+    that if a state is arrived at by two paths, then there are two nodes with
+    the same state.  Also includes the action that got us to this state, and
+    the total path_cost (also known as g) to reach the node.  Other functions
+    may add an f and h value; see best_first_graph_search and astar_search for
+    an explanation of how the f and h values are handled. You will not need to
+    subclass this class."""
+
+    def __init__(self, state, parent=None, action=None, path_cost=0):
+        "Create a search tree Node, derived from a parent by an action."
+        update(self, state=state, parent=parent, action=action,
+               path_cost=path_cost, depth=0)
+        if parent:
+            self.depth = parent.depth + 1
+
+    def __repr__(self):
+        return "<Node %s>" % (self.state,)
+
+    def expand(self, problem):
+        "List the nodes reachable in one step from this node."
+        return [self.child_node(problem, action)
+                for action in problem.actions(self.state)]
+
+    def child_node(self, problem, action):
+        "Fig. 3.10"
+        next = problem.result(self.state, action)
+        return Node(next, self, action,
+                    problem.path_cost(self.path_cost, self.state, action, next))
+
+    def solution(self):
+        "Return the sequence of actions to go from the root to this node."
+        return [node.action for node in self.path()[1:]]
+
+    def path(self):
+        "Return a list of nodes forming the path from the root to this node."
+        node, path_back = self, []
+        while node:
+            path_back.append(node)
+            node = node.parent
+        return list(reversed(path_back))
+
+    # We want for a queue of nodes in breadth_first_search or
+    # astar_search to have no duplicated states, so we treat nodes
+    # with the same state as equal. [Problem: this may not be what you
+    # want in other contexts.]
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    def __hash__(self):
+        return hash(self.state)
+
+#______________________________________________________________________________
+
+class SimpleProblemSolvingAgentProgram:
+    """Abstract framework for a problem-solving agent. [Fig. 3.1]"""
+    def __init__(self, initial_state=None):
+        update(self, state=initial_state, seq=[])
+
+    def __call__(self, percept):
+        self.state = self.update_state(self.state, percept)
+        if not self.seq:
+            goal = self.formulate_goal(self.state)
+            problem = self.formulate_problem(self.state, goal)
+            self.seq = self.search(problem)
+            if not self.seq: return None
+        return self.seq.pop(0)
+
+    def update_state(self, percept):
+        abstract
+
+    def formulate_goal(self, state):
+        abstract
+
+    def formulate_problem(self, state, goal):
+        abstract
+
+    def search(self, problem):
+        abstract
+
+#______________________________________________________________________________
+# Uninformed Search algorithms
+
+def tree_search(problem, frontier):
+    """Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    Don't worry about repeated paths to a state. [Fig. 3.7]"""
+    frontier.append(Node(problem.initial))
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        frontier.extend(node.expand(problem))
+    return None
+
+def graph_search(problem, frontier):
+    """Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    If two paths reach a state, only use the first one. [Fig. 3.7]"""
+    frontier.append(Node(problem.initial))
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in explored
+                        and child not in frontier)
+    return None
+
+def breadth_first_tree_search(problem):
+    "Search the shallowest nodes in the search tree first."
+    return tree_search(problem, FIFOQueue())
+
+def depth_first_tree_search(problem):
+    "Search the deepest nodes in the search tree first."
+    return tree_search(problem, Stack())
+
+def depth_first_graph_search(problem):
+    "Search the deepest nodes in the search tree first."
+    return graph_search(problem, Stack())
+
+def breadth_first_search(problem):
+    "[Fig. 3.11]"
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = FIFOQueue()
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child
+                frontier.append(child)
+    return None
+
+def best_first_graph_search(problem, f):
+    """Search the nodes with the lowest f scores first.
+    You specify the function f(node) that you want to minimize; for example,
+    if f is a heuristic estimate to the goal, then we have greedy best
+    first search; if f is node.depth then we have breadth-first search.
+    There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+    values will be cached on the nodes as they are computed. So after doing
+    a best first search you can examine the f values of the path returned."""
+    f = memoize(f, 'f')
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = PriorityQueue(min, f)
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                frontier.append(child)
+            elif child in frontier:
+                incumbent = frontier[child]
+                if f(child) < f(incumbent):
+                    del frontier[incumbent]
+                    frontier.append(child)
+    return None
+
+def uniform_cost_search(problem):
+    "[Fig. 3.14]"
+    return best_first_graph_search(problem, lambda node: node.path_cost)
+
+def depth_limited_search(problem, limit=50):
+    "[Fig. 3.17]"
+    def recursive_dls(node, problem, limit):
+        if problem.goal_test(node.state):
+            return node
+        elif node.depth == limit:
+            return 'cutoff'
+        else:
+            cutoff_occurred = False
+            for child in node.expand(problem):
+                result = recursive_dls(child, problem, limit)
+                if result == 'cutoff':
+                    cutoff_occurred = True
+                elif result is not None:
+                    return result
+            return if_(cutoff_occurred, 'cutoff', None)
+
+    # Body of depth_limited_search:
+    return recursive_dls(Node(problem.initial), problem, limit)
+
+def iterative_deepening_search(problem):
+    "[Fig. 3.18]"
+    for depth in xrange(sys.maxint):
+        result = depth_limited_search(problem, depth)
+        if result != 'cutoff':
+            return result
+
+#______________________________________________________________________________
+# Informed (Heuristic) Search
+
+greedy_best_first_graph_search = best_first_graph_search
+    # Greedy best-first search is accomplished by specifying f(n) = h(n).
+
+def astar_search(problem, h=None):
+    """A* search is best-first graph search with f(n) = g(n)+h(n).
+    You need to specify the h function when you call astar_search, or
+    else in your Problem subclass."""
+    h = memoize(h or problem.h, 'h')
+    return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
+
+#______________________________________________________________________________
+# Other search algorithms
+
+def recursive_best_first_search(problem, h=None):
+    "[Fig. 3.26]"
+    h = memoize(h or problem.h, 'h')
+
+    def RBFS(problem, node, flimit):
+        if problem.goal_test(node.state):
+            return node, 0   # (The second value is immaterial)
+        successors = node.expand(problem)
+        if len(successors) == 0:
+            return None, infinity
+        for s in successors:
+            s.f = max(s.path_cost + h(s), node.f)
+        while True:
+            successors.sort(lambda x,y: cmp(x.f, y.f)) # Order by lowest f value
+            best = successors[0]
+            if best.f > flimit:
+                return None, best.f
+            if len(successors) > 1:
+                alternative = successors[1].f
+            else:
+                alternative = infinity
+            result, best.f = RBFS(problem, best, min(flimit, alternative))
+            if result is not None:
+                return result, best.f
+
+    node = Node(problem.initial)
+    node.f = h(node)
+    result, bestf = RBFS(problem, node, infinity)
+    return result
+
+def hill_climbing(problem):
+    """From the initial node, keep choosing the neighbor with highest value,
+    stopping when no neighbor is better. [Fig. 4.2]"""
+    current = Node(problem.initial)
+    while True:
+        neighbors = current.expand(problem)
+        if not neighbors:
+            break
+        neighbor = argmax_random_tie(neighbors,
+                                     lambda node: problem.value(node.state))
+        if problem.value(neighbor.state) <= problem.value(current.state):
+            break
+        current = neighbor
+    return current.state
+
+def exp_schedule(k=20, lam=0.005, limit=100):
+    "One possible schedule function for simulated annealing"
+    return lambda t: if_(t < limit, k * math.exp(-lam * t), 0)
+
+def simulated_annealing(problem, schedule=exp_schedule()):
+    "[Fig. 4.5]"
+    current = Node(problem.initial)
+    for t in xrange(sys.maxint):
+        T = schedule(t)
+        if T == 0:
+            return current
+        neighbors = current.expand(problem)
+        if not neighbors:
+            return current
+        next = random.choice(neighbors)
+        delta_e = problem.value(next.state) - problem.value(current.state)
+        if delta_e > 0 or probability(math.exp(delta_e/T)):
+            current = next
+
+def and_or_graph_search(problem):
+    "[Fig. 4.11]"
+    unimplemented()
+
+def online_dfs_agent(s1):
+    "[Fig. 4.21]"
+    unimplemented()
+
+def lrta_star_agent(s1):
+    "[Fig. 4.24]"
+    unimplemented()
+
+#______________________________________________________________________________
+# Genetic Algorithm
+
+def genetic_search(problem, fitness_fn, ngen=1000, pmut=0.1, n=20):
+    """Call genetic_algorithm on the appropriate parts of a problem.
+    This requires the problem to have states that can mate and mutate,
+    plus a value method that scores states."""
+    s = problem.initial_state
+    states = [problem.result(s, a) for a in problem.actions(s)]
+    random.shuffle(states)
+    return genetic_algorithm(states[:n], problem.value, ngen, pmut)
+
+def genetic_algorithm(population, fitness_fn, ngen=1000, pmut=0.1):
+    "[Fig. 4.8]"
+    for i in range(ngen):
+        new_population = []
+        for i in len(population):
+            fitnesses = map(fitness_fn, population)
+            p1, p2 = weighted_sample_with_replacement(population, fitnesses, 2)
+            child = p1.mate(p2)
+            if random.uniform(0, 1) < pmut:
+                child.mutate()
+            new_population.append(child)
+        population = new_population
+    return argmax(population, fitness_fn)
+
+class GAState:
+    "Abstract class for individuals in a genetic search."
+    def __init__(self, genes):
+        self.genes = genes
+
+    def mate(self, other):
+        "Return a new individual crossing self and other."
+        c = random.randrange(len(self.genes))
+        return self.__class__(self.genes[:c] + other.genes[c:])
+
+    def mutate(self):
+        "Change a few of my genes."
+        abstract
+
+#_____________________________________________________________________________
+# The remainder of this file implements examples for the search algorithms.
+
+#______________________________________________________________________________
+# Graphs and Graph Problems
+
+class Graph:
+    """A graph connects nodes (verticies) by edges (links).  Each edge can also
+    have a length associated with it.  The constructor call is something like:
+        g = Graph({'A': {'B': 1, 'C': 2})
+    this makes a graph with 3 nodes, A, B, and C, with an edge of length 1 from
+    A to B,  and an edge of length 2 from A to C.  You can also do:
+        g = Graph({'A': {'B': 1, 'C': 2}, directed=False)
+    This makes an undirected graph, so inverse links are also added. The graph
+    stays undirected; if you add more links with g.connect('B', 'C', 3), then
+    inverse link is also added.  You can use g.nodes() to get a list of nodes,
+    g.get('A') to get a dict of links out of A, and g.get('A', 'B') to get the
+    length of the link from A to B.  'Lengths' can actually be any object at
+    all, and nodes can be any hashable object."""
+
+    def __init__(self, dict=None, directed=True):
+        self.dict = dict or {}
+        self.directed = directed
+        if not directed: self.make_undirected()
+
+    def make_undirected(self):
+        "Make a digraph into an undirected graph by adding symmetric edges."
+        for a in self.dict.keys():
+            for (b, distance) in self.dict[a].items():
+                self.connect1(b, a, distance)
+
+    def connect(self, A, B, distance=1):
+        """Add a link from A and B of given distance, and also add the inverse
+        link if the graph is undirected."""
+        self.connect1(A, B, distance)
+        if not self.directed: self.connect1(B, A, distance)
+
+    def connect1(self, A, B, distance):
+        "Add a link from A to B of given distance, in one direction only."
+        self.dict.setdefault(A,{})[B] = distance
+
+    def get(self, a, b=None):
+        """Return a link distance or a dict of {node: distance} entries.
+        .get(a,b) returns the distance or None;
+        .get(a) returns a dict of {node: distance} entries, possibly {}."""
+        links = self.dict.setdefault(a, {})
+        if b is None: return links
+        else: return links.get(b)
+
+    def nodes(self):
+        "Return a list of nodes in the graph."
+        return self.dict.keys()
+
+def UndirectedGraph(dict=None):
+    "Build a Graph where every edge (including future ones) goes both ways."
+    return Graph(dict=dict, directed=False)
+
+def RandomGraph(nodes=range(10), min_links=2, width=400, height=300,
+                                curvature=lambda: random.uniform(1.1, 1.5)):
+    """Construct a random graph, with the specified nodes, and random links.
+    The nodes are laid out randomly on a (width x height) rectangle.
+    Then each node is connected to the min_links nearest neighbors.
+    Because inverse links are added, some nodes will have more connections.
+    The distance between nodes is the hypotenuse times curvature(),
+    where curvature() defaults to a random number between 1.1 and 1.5."""
+    g = UndirectedGraph()
+    g.locations = {}
+    ## Build the cities
+    for node in nodes:
+        g.locations[node] = (random.randrange(width), random.randrange(height))
+    ## Build roads from each city to at least min_links nearest neighbors.
+    for i in range(min_links):
+        for node in nodes:
+            if len(g.get(node)) < min_links:
+                here = g.locations[node]
+                def distance_to_node(n):
+                    if n is node or g.get(node,n): return infinity
+                    return distance(g.locations[n], here)
+                neighbor = argmin(nodes, distance_to_node)
+                d = distance(g.locations[neighbor], here) * curvature()
+                g.connect(node, neighbor, int(d))
+    return g
+
+romania = UndirectedGraph(Dict(
+    A=Dict(Z=75, S=140, T=118),
+    B=Dict(U=85, P=101, G=90, F=211),
+    C=Dict(D=120, R=146, P=138),
+    D=Dict(M=75),
+    E=Dict(H=86),
+    F=Dict(S=99),
+    H=Dict(U=98),
+    I=Dict(V=92, N=87),
+    L=Dict(T=111, M=70),
+    O=Dict(Z=71, S=151),
+    P=Dict(R=97),
+    R=Dict(S=80),
+    U=Dict(V=142)))
+romania.locations = Dict(
+    A=( 91, 492),    B=(400, 327),    C=(253, 288),   D=(165, 299),
+    E=(562, 293),    F=(305, 449),    G=(375, 270),   H=(534, 350),
+    I=(473, 506),    L=(165, 379),    M=(168, 339),   N=(406, 537),
+    O=(131, 571),    P=(320, 368),    R=(233, 410),   S=(207, 457),
+    T=( 94, 410),    U=(456, 350),    V=(509, 444),   Z=(108, 531))
+
+australia = UndirectedGraph(Dict(
+    T=Dict(),
+    SA=Dict(WA=1, NT=1, Q=1, NSW=1, V=1),
+    NT=Dict(WA=1, Q=1),
+    NSW=Dict(Q=1, V=1)))
+australia.locations = Dict(WA=(120, 24), NT=(135, 20), SA=(135, 30),
+                           Q=(145, 20), NSW=(145, 32), T=(145, 42), V=(145, 37))
+
+class GraphProblem(Problem):
+    "The problem of searching a graph from one node to another."
+    def __init__(self, initial, goal, graph):
+        Problem.__init__(self, initial, goal)
+        self.graph = graph
+
+    def actions(self, A):
+        "The actions at a graph node are just its neighbors."
+        return self.graph.get(A).keys()
+
+    def result(self, state, action):
+        "The result of going to a neighbor is just that neighbor."
+        return action
+
+    def path_cost(self, cost_so_far, A, action, B):
+        return cost_so_far + (self.graph.get(A,B) or infinity)
+
+    def h(self, node):
+        "h function is straight-line distance from a node's state to goal."
+        locs = getattr(self.graph, 'locations', None)
+        if locs:
+            return int(distance(locs[node.state], locs[self.goal]))
+        else:
+            return infinity
+
+#______________________________________________________________________________
+
+class NQueensProblem(Problem):
+    """The problem of placing N queens on an NxN board with none attacking
+    each other.  A state is represented as an N-element array, where
+    a value of r in the c-th entry means there is a queen at column c,
+    row r, and a value of None means that the c-th column has not been
+    filled in yet.  We fill in columns left to right.
+    >>> depth_first_tree_search(NQueensProblem(8))
+    <Node [7, 3, 0, 2, 5, 1, 6, 4]>
+    """
+    def __init__(self, N):
+        self.N = N
+        self.initial = [None] * N
+
+    def actions(self, state):
+        "In the leftmost empty column, try all non-conflicting rows."
+        if state[-1] is not None:
+            return [] # All columns filled; no successors
+        else:
+            col = state.index(None)
+            return [row for row in range(self.N)
+                    if not self.conflicted(state, row, col)]
+
+    def result(self, state, row):
+        "Place the next queen at the given row."
+        col = state.index(None)
+        new = state[:]
+        new[col] = row
+        return new
+
+    def conflicted(self, state, row, col):
+        "Would placing a queen at (row, col) conflict with anything?"
+        return any(self.conflict(row, col, state[c], c)
+                   for c in range(col))
+
+    def conflict(self, row1, col1, row2, col2):
+        "Would putting two queens in (row1, col1) and (row2, col2) conflict?"
+        return (row1 == row2 ## same row
+                or col1 == col2 ## same column
+                or row1-col1 == row2-col2  ## same \ diagonal
+                or row1+col1 == row2+col2) ## same / diagonal
+
+    def goal_test(self, state):
+        "Check if all columns filled, no conflicts."
+        if state[-1] is None:
+            return False
+        return not any(self.conflicted(state, state[col], col)
+                       for col in range(len(state)))
+
+#______________________________________________________________________________
+# Inverse Boggle: Search for a high-scoring Boggle board. A good domain for
+# iterative-repair and related search techniques, as suggested by Justin Boyan.
+
+ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+cubes16 = ['FORIXB', 'MOQABJ', 'GURILW', 'SETUPL',
+           'CMPDAE', 'ACITAO', 'SLCRAE', 'ROMASH',
+           'NODESW', 'HEFIYE', 'ONUDTK', 'TEVIGN',
+           'ANEDVZ', 'PINESH', 'ABILYT', 'GKYLEU']
+
+def random_boggle(n=4):
+    """Return a random Boggle board of size n x n.
+    We represent a board as a linear list of letters."""
+    cubes = [cubes16[i % 16] for i in range(n*n)]
+    random.shuffle(cubes)
+    return map(random.choice, cubes)
+
+# The best 5x5 board found by Boyan, with our word list this board scores
+# 2274 words, for a score of 9837
+
+boyan_best = list('RSTCSDEIAEGNLRPEATESMSSID')
+
+def print_boggle(board):
+    "Print the board in a 2-d array."
+    n2 = len(board); n = exact_sqrt(n2)
+    for i in range(n2):
+        if i % n == 0 and i > 0: print
+        if board[i] == 'Q': print 'Qu',
+        else: print str(board[i]) + ' ',
+    print
+
+def boggle_neighbors(n2, cache={}):
+    """Return a list of lists, where the i-th element is the list of indexes
+    for the neighbors of square i."""
+    if cache.get(n2):
+        return cache.get(n2)
+    n = exact_sqrt(n2)
+    neighbors = [None] * n2
+    for i in range(n2):
+        neighbors[i] = []
+        on_top = i < n
+        on_bottom = i >= n2 - n
+        on_left = i % n == 0
+        on_right = (i+1) % n == 0
+        if not on_top:
+            neighbors[i].append(i - n)
+            if not on_left:  neighbors[i].append(i - n - 1)
+            if not on_right: neighbors[i].append(i - n + 1)
+        if not on_bottom:
+            neighbors[i].append(i + n)
+            if not on_left:  neighbors[i].append(i + n - 1)
+            if not on_right: neighbors[i].append(i + n + 1)
+        if not on_left: neighbors[i].append(i - 1)
+        if not on_right: neighbors[i].append(i + 1)
+    cache[n2] = neighbors
+    return neighbors
+
+def exact_sqrt(n2):
+    "If n2 is a perfect square, return its square root, else raise error."
+    n = int(math.sqrt(n2))
+    assert n * n == n2
+    return n
+
+#_____________________________________________________________________________
+
+class Wordlist:
+    """This class holds a list of words. You can use (word in wordlist)
+    to check if a word is in the list, or wordlist.lookup(prefix)
+    to see if prefix starts any of the words in the list."""
+    def __init__(self, filename, min_len=3):
+        lines = open(filename).read().upper().split()
+        self.words = [word for word in lines if len(word) >= min_len]
+        self.words.sort()
+        self.bounds = {}
+        for c in ALPHABET:
+            c2 = chr(ord(c) + 1)
+            self.bounds[c] = (bisect.bisect(self.words, c),
+                              bisect.bisect(self.words, c2))
+
+    def lookup(self, prefix, lo=0, hi=None):
+        """See if prefix is in dictionary, as a full word or as a prefix.
+        Return two values: the first is the lowest i such that
+        words[i].startswith(prefix), or is None; the second is
+        True iff prefix itself is in the Wordlist."""
+        words = self.words
+        if hi is None: hi = len(words)
+        i = bisect.bisect_left(words, prefix, lo, hi)
+        if i < len(words) and words[i].startswith(prefix):
+            return i, (words[i] == prefix)
+        else:
+            return None, False
+
+    def __contains__(self, word):
+        return self.lookup(word)[1]
+
+    def __len__(self):
+        return len(self.words)
+
+#_____________________________________________________________________________
+
+class BoggleFinder:
+    """A class that allows you to find all the words in a Boggle board. """
+
+    wordlist = None ## A class variable, holding a wordlist
+
+    def __init__(self, board=None):
+        if BoggleFinder.wordlist is None:
+            BoggleFinder.wordlist = Wordlist("../data/EN-text/wordlist")
+        self.found = {}
+        if board:
+            self.set_board(board)
+
+    def set_board(self, board=None):
+        "Set the board, and find all the words in it."
+        if board is None:
+            board = random_boggle()
+        self.board = board
+        self.neighbors = boggle_neighbors(len(board))
+        self.found = {}
+        for i in range(len(board)):
+            lo, hi = self.wordlist.bounds[board[i]]
+            self.find(lo, hi, i, [], '')
+        return self
+
+    def find(self, lo, hi, i, visited, prefix):
+        """Looking in square i, find the words that continue the prefix,
+        considering the entries in self.wordlist.words[lo:hi], and not
+        revisiting the squares in visited."""
+        if i in visited:
+            return
+        wordpos, is_word = self.wordlist.lookup(prefix, lo, hi)
+        if wordpos is not None:
+            if is_word:
+                self.found[prefix] = True
+            visited.append(i)
+            c = self.board[i]
+            if c == 'Q': c = 'QU'
+            prefix += c
+            for j in self.neighbors[i]:
+                self.find(wordpos, hi, j, visited, prefix)
+            visited.pop()
+
+    def words(self):
+        "The words found."
+        return self.found.keys()
+
+    scores = [0, 0, 0, 0, 1, 2, 3, 5] + [11] * 100
+
+    def score(self):
+        "The total score for the words found, according to the rules."
+        return sum([self.scores[len(w)] for w in self.words()])
+
+    def __len__(self):
+        "The number of words found."
+        return len(self.found)
+
+#_____________________________________________________________________________
+
+def boggle_hill_climbing(board=None, ntimes=100, verbose=True):
+    """Solve inverse Boggle by hill-climbing: find a high-scoring board by
+    starting with a random one and changing it."""
+    finder = BoggleFinder()
+    if board is None:
+        board = random_boggle()
+    best = len(finder.set_board(board))
+    for _ in range(ntimes):
+        i, oldc = mutate_boggle(board)
+        new = len(finder.set_board(board))
+        if new > best:
+            best = new
+            if verbose: print best, _, board
+        else:
+            board[i] = oldc ## Change back
+    if verbose:
+        print_boggle(board)
+    return board, best
+
+def mutate_boggle(board):
+    i = random.randrange(len(board))
+    oldc = board[i]
+    board[i] = random.choice(random.choice(cubes16)) ##random.choice(boyan_best)
+    return i, oldc
+
+#______________________________________________________________________________
+
+# Code to compare searchers on various problems.
+
+class InstrumentedProblem(Problem):
+    """Delegates to a problem, and keeps statistics."""
+
+    def __init__(self, problem):
+        self.problem = problem
+        self.succs = self.goal_tests = self.states = 0
+        self.found = None
+
+    def actions(self, state):
+        self.succs += 1
+        return self.problem.actions(state)
+
+    def result(self, state, action):
+        self.states += 1
+        return self.problem.result(state, action)
+
+    def goal_test(self, state):
+        self.goal_tests += 1
+        result = self.problem.goal_test(state)
+        if result:
+            self.found = state
+        return result
+
+    def path_cost(self, c, state1, action, state2):
+        return self.problem.path_cost(c, state1, action, state2)
+
+    def value(self, state):
+        return self.problem.value(state)
+
+    def __getattr__(self, attr):
+        return getattr(self.problem, attr)
+
+    def __repr__(self):
+        return '<%4d/%4d/%4d/%s>' % (self.succs, self.goal_tests,
+                                     self.states, str(self.found)[:4])
+
+def compare_searchers(problems, header,
+                      searchers=[breadth_first_tree_search,
+                                 breadth_first_search, depth_first_graph_search,
+                                 iterative_deepening_search,
+                                 depth_limited_search,
+                                 recursive_best_first_search]):
+    def do(searcher, problem):
+        p = InstrumentedProblem(problem)
+        searcher(p)
+        return p
+    table = [[name(s)] + [do(s, p) for p in problems] for s in searchers]
+    print_table(table, header)
+
+def compare_graph_searchers():
+    """Prints a table of results like this:
+>>> compare_graph_searchers()
+Searcher                      Romania(A, B)        Romania(O, N)         Australia          
+breadth_first_tree_search     <  21/  22/  59/B>   <1158/1159/3288/N>    <   7/   8/  22/WA>
+breadth_first_search          <   7/  11/  18/B>   <  19/  20/  45/N>    <   2/   6/   8/WA>
+depth_first_graph_search      <   8/   9/  20/B>   <  16/  17/  38/N>    <   4/   5/  11/WA>
+iterative_deepening_search    <  11/  33/  31/B>   < 656/1815/1812/N>    <   3/  11/  11/WA>
+depth_limited_search          <  54/  65/ 185/B>   < 387/1012/1125/N>    <  50/  54/ 200/WA>
+recursive_best_first_search   <   5/   6/  15/B>   <5887/5888/16532/N>   <  11/  12/  43/WA>"""
+    compare_searchers(problems=[GraphProblem('A', 'B', romania),
+                                GraphProblem('O', 'N', romania),
+                                GraphProblem('Q', 'WA', australia)],
+            header=['Searcher', 'Romania(A, B)', 'Romania(O, N)', 'Australia'])
+
+#______________________________________________________________________________
+
+__doc__ += """
+>>> ab = GraphProblem('A', 'B', romania)
+>>> breadth_first_tree_search(ab).solution()
+['S', 'F', 'B']
+>>> breadth_first_search(ab).solution()
+['S', 'F', 'B']
+>>> uniform_cost_search(ab).solution()
+['S', 'R', 'P', 'B']
+>>> depth_first_graph_search(ab).solution()
+['T', 'L', 'M', 'D', 'C', 'P', 'B']
+>>> iterative_deepening_search(ab).solution()
+['S', 'F', 'B']
+>>> len(depth_limited_search(ab).solution())
+50
+>>> astar_search(ab).solution()
+['S', 'R', 'P', 'B']
+>>> recursive_best_first_search(ab).solution()
+['S', 'R', 'P', 'B']
+
+>>> board = list('SARTELNID')
+>>> print_boggle(board)
+S  A  R 
+T  E  L 
+N  I  D 
+>>> f = BoggleFinder(board)
+>>> len(f)
+206
+"""
+
+__doc__ += random_tests("""
+>>> ' '.join(f.words())
+'LID LARES DEAL LIE DIETS LIN LINT TIL TIN RATED ERAS LATEN DEAR TIE LINE INTER STEAL LATED LAST TAR SAL DITES RALES SAE RETS TAE RAT RAS SAT IDLE TILDES LEAST IDEAS LITE SATED TINED LEST LIT RASE RENTS TINEA EDIT EDITS NITES ALES LATE LETS RELIT TINES LEI LAT ELINT LATI SENT TARED DINE STAR SEAR NEST LITAS TIED SEAT SERAL RATE DINT DEL DEN SEAL TIER TIES NET SALINE DILATE EAST TIDES LINTER NEAR LITS ELINTS DENI RASED SERA TILE NEAT DERAT IDLEST NIDE LIEN STARED LIER LIES SETA NITS TINE DITAS ALINE SATIN TAS ASTER LEAS TSAR LAR NITE RALE LAS REAL NITER ATE RES RATEL IDEA RET IDEAL REI RATS STALE DENT RED IDES ALIEN SET TEL SER TEN TEA TED SALE TALE STILE ARES SEA TILDE SEN SEL ALINES SEI LASE DINES ILEA LINES ELD TIDE RENT DIEL STELA TAEL STALED EARL LEA TILES TILER LED ETA TALI ALE LASED TELA LET IDLER REIN ALIT ITS NIDES DIN DIE DENTS STIED LINER LASTED RATINE ERA IDLES DIT RENTAL DINER SENTI TINEAL DEIL TEAR LITER LINTS TEAL DIES EAR EAT ARLES SATE STARE DITS DELI DENTAL REST DITE DENTIL DINTS DITA DIET LENT NETS NIL NIT SETAL LATS TARE ARE SATI'
+
+>>> boggle_hill_climbing(list('ABCDEFGHI'), verbose=False)
+(['E', 'P', 'R', 'D', 'O', 'A', 'G', 'S', 'T'], 123)
+""")
+</code></pre>
+  </div>
+
+  </header>
+
+  <section id="section-items">
+    <h2 class="section-title" id="header-variables">Module variables</h2>
+      <div class="item">
+      <p id="search.ALPHABET" class="name">var <span class="ident">ALPHABET</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.Fig" class="name">var <span class="ident">Fig</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.australia" class="name">var <span class="ident">australia</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.boyan_best" class="name">var <span class="ident">boyan_best</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.cubes16" class="name">var <span class="ident">cubes16</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.infinity" class="name">var <span class="ident">infinity</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.orientations" class="name">var <span class="ident">orientations</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="search.romania" class="name">var <span class="ident">romania</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+
+    <h2 class="section-title" id="header-functions">Functions</h2>
+      
+  <div class="item">
+    <div class="name def" id="search.RandomGraph">
+    <p>def <span class="ident">RandomGraph</span>(</p><p>nodes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], min_links=2, width=400, height=300, curvature=&lt;function &lt;lambda&gt; at 0x10b9b7230&gt;)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Construct a random graph, with the specified nodes, and random links.
+The nodes are laid out randomly on a (width x height) rectangle.
+Then each node is connected to the min_links nearest neighbors.
+Because inverse links are added, some nodes will have more connections.
+The distance between nodes is the hypotenuse times curvature(),
+where curvature() defaults to a random number between 1.1 and 1.5.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.RandomGraph', this);">Show source &equiv;</a></p>
+  <div id="source-search.RandomGraph" class="source">
+    <pre><code>def RandomGraph(nodes=range(10), min_links=2, width=400, height=300,
+                                curvature=lambda: random.uniform(1.1, 1.5)):
+    """Construct a random graph, with the specified nodes, and random links.
+    The nodes are laid out randomly on a (width x height) rectangle.
+    Then each node is connected to the min_links nearest neighbors.
+    Because inverse links are added, some nodes will have more connections.
+    The distance between nodes is the hypotenuse times curvature(),
+    where curvature() defaults to a random number between 1.1 and 1.5."""
+    g = UndirectedGraph()
+    g.locations = {}
+    ## Build the cities
+    for node in nodes:
+        g.locations[node] = (random.randrange(width), random.randrange(height))
+    ## Build roads from each city to at least min_links nearest neighbors.
+    for i in range(min_links):
+        for node in nodes:
+            if len(g.get(node)) < min_links:
+                here = g.locations[node]
+                def distance_to_node(n):
+                    if n is node or g.get(node,n): return infinity
+                    return distance(g.locations[n], here)
+                neighbor = argmin(nodes, distance_to_node)
+                d = distance(g.locations[neighbor], here) * curvature()
+                g.connect(node, neighbor, int(d))
+    return g
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.UndirectedGraph">
+    <p>def <span class="ident">UndirectedGraph</span>(</p><p>dict=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Build a Graph where every edge (including future ones) goes both ways.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.UndirectedGraph', this);">Show source &equiv;</a></p>
+  <div id="source-search.UndirectedGraph" class="source">
+    <pre><code>def UndirectedGraph(dict=None):
+    "Build a Graph where every edge (including future ones) goes both ways."
+    return Graph(dict=dict, directed=False)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.and_or_graph_search">
+    <p>def <span class="ident">and_or_graph_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 4.11]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.and_or_graph_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.and_or_graph_search" class="source">
+    <pre><code>def and_or_graph_search(problem):
+    "[Fig. 4.11]"
+    unimplemented()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.astar_search">
+    <p>def <span class="ident">astar_search</span>(</p><p>problem, h=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>A* search is best-first graph search with f(n) = g(n)+h(n).
+You need to specify the h function when you call astar_search, or
+else in your Problem subclass.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.astar_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.astar_search" class="source">
+    <pre><code>def astar_search(problem, h=None):
+    """A* search is best-first graph search with f(n) = g(n)+h(n).
+    You need to specify the h function when you call astar_search, or
+    else in your Problem subclass."""
+    h = memoize(h or problem.h, 'h')
+    return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.best_first_graph_search">
+    <p>def <span class="ident">best_first_graph_search</span>(</p><p>problem, f)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search the nodes with the lowest f scores first.
+You specify the function f(node) that you want to minimize; for example,
+if f is a heuristic estimate to the goal, then we have greedy best
+first search; if f is node.depth then we have breadth-first search.
+There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+values will be cached on the nodes as they are computed. So after doing
+a best first search you can examine the f values of the path returned.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.best_first_graph_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.best_first_graph_search" class="source">
+    <pre><code>def best_first_graph_search(problem, f):
+    """Search the nodes with the lowest f scores first.
+    You specify the function f(node) that you want to minimize; for example,
+    if f is a heuristic estimate to the goal, then we have greedy best
+    first search; if f is node.depth then we have breadth-first search.
+    There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+    values will be cached on the nodes as they are computed. So after doing
+    a best first search you can examine the f values of the path returned."""
+    f = memoize(f, 'f')
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = PriorityQueue(min, f)
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                frontier.append(child)
+            elif child in frontier:
+                incumbent = frontier[child]
+                if f(child) < f(incumbent):
+                    del frontier[incumbent]
+                    frontier.append(child)
+    return None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.boggle_hill_climbing">
+    <p>def <span class="ident">boggle_hill_climbing</span>(</p><p>board=None, ntimes=100, verbose=True)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Solve inverse Boggle by hill-climbing: find a high-scoring board by
+starting with a random one and changing it.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.boggle_hill_climbing', this);">Show source &equiv;</a></p>
+  <div id="source-search.boggle_hill_climbing" class="source">
+    <pre><code>def boggle_hill_climbing(board=None, ntimes=100, verbose=True):
+    """Solve inverse Boggle by hill-climbing: find a high-scoring board by
+    starting with a random one and changing it."""
+    finder = BoggleFinder()
+    if board is None:
+        board = random_boggle()
+    best = len(finder.set_board(board))
+    for _ in range(ntimes):
+        i, oldc = mutate_boggle(board)
+        new = len(finder.set_board(board))
+        if new > best:
+            best = new
+            if verbose: print best, _, board
+        else:
+            board[i] = oldc ## Change back
+    if verbose:
+        print_boggle(board)
+    return board, best
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.boggle_neighbors">
+    <p>def <span class="ident">boggle_neighbors</span>(</p><p>n2, cache={})</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a list of lists, where the i-th element is the list of indexes
+for the neighbors of square i.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.boggle_neighbors', this);">Show source &equiv;</a></p>
+  <div id="source-search.boggle_neighbors" class="source">
+    <pre><code>def boggle_neighbors(n2, cache={}):
+    """Return a list of lists, where the i-th element is the list of indexes
+    for the neighbors of square i."""
+    if cache.get(n2):
+        return cache.get(n2)
+    n = exact_sqrt(n2)
+    neighbors = [None] * n2
+    for i in range(n2):
+        neighbors[i] = []
+        on_top = i < n
+        on_bottom = i >= n2 - n
+        on_left = i % n == 0
+        on_right = (i+1) % n == 0
+        if not on_top:
+            neighbors[i].append(i - n)
+            if not on_left:  neighbors[i].append(i - n - 1)
+            if not on_right: neighbors[i].append(i - n + 1)
+        if not on_bottom:
+            neighbors[i].append(i + n)
+            if not on_left:  neighbors[i].append(i + n - 1)
+            if not on_right: neighbors[i].append(i + n + 1)
+        if not on_left: neighbors[i].append(i - 1)
+        if not on_right: neighbors[i].append(i + 1)
+    cache[n2] = neighbors
+    return neighbors
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.breadth_first_search">
+    <p>def <span class="ident">breadth_first_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 3.11]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.breadth_first_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.breadth_first_search" class="source">
+    <pre><code>def breadth_first_search(problem):
+    "[Fig. 3.11]"
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = FIFOQueue()
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child
+                frontier.append(child)
+    return None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.breadth_first_tree_search">
+    <p>def <span class="ident">breadth_first_tree_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search the shallowest nodes in the search tree first.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.breadth_first_tree_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.breadth_first_tree_search" class="source">
+    <pre><code>def breadth_first_tree_search(problem):
+    "Search the shallowest nodes in the search tree first."
+    return tree_search(problem, FIFOQueue())
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.compare_graph_searchers">
+    <p>def <span class="ident">compare_graph_searchers</span>(</p><p>)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Prints a table of results like this:</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>compare_graph_searchers()
+Searcher                      Romania(A, B)        Romania(O, N)         Australia        <br />
+breadth_first_tree_search     &lt;  21/  22/  59/B&gt;   &lt;1158/1159/3288/N&gt;    &lt;   7/   8/  22/WA&gt;
+breadth_first_search          &lt;   7/  11/  18/B&gt;   &lt;  19/  20/  45/N&gt;    &lt;   2/   6/   8/WA&gt;
+depth_first_graph_search      &lt;   8/   9/  20/B&gt;   &lt;  16/  17/  38/N&gt;    &lt;   4/   5/  11/WA&gt;
+iterative_deepening_search    &lt;  11/  33/  31/B&gt;   &lt; 656/1815/1812/N&gt;    &lt;   3/  11/  11/WA&gt;
+depth_limited_search          &lt;  54/  65/ 185/B&gt;   &lt; 387/1012/1125/N&gt;    &lt;  50/  54/ 200/WA&gt;
+recursive_best_first_search   &lt;   5/   6/  15/B&gt;   &lt;5887/5888/16532/N&gt;   &lt;  11/  12/  43/WA&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.compare_graph_searchers', this);">Show source &equiv;</a></p>
+  <div id="source-search.compare_graph_searchers" class="source">
+    <pre><code>def compare_graph_searchers():
+    """Prints a table of results like this:
+>>> compare_graph_searchers()
+Searcher                      Romania(A, B)        Romania(O, N)         Australia          
+breadth_first_tree_search     <  21/  22/  59/B>   <1158/1159/3288/N>    <   7/   8/  22/WA>
+breadth_first_search          <   7/  11/  18/B>   <  19/  20/  45/N>    <   2/   6/   8/WA>
+depth_first_graph_search      <   8/   9/  20/B>   <  16/  17/  38/N>    <   4/   5/  11/WA>
+iterative_deepening_search    <  11/  33/  31/B>   < 656/1815/1812/N>    <   3/  11/  11/WA>
+depth_limited_search          <  54/  65/ 185/B>   < 387/1012/1125/N>    <  50/  54/ 200/WA>
+recursive_best_first_search   <   5/   6/  15/B>   <5887/5888/16532/N>   <  11/  12/  43/WA>"""
+    compare_searchers(problems=[GraphProblem('A', 'B', romania),
+                                GraphProblem('O', 'N', romania),
+                                GraphProblem('Q', 'WA', australia)],
+            header=['Searcher', 'Romania(A, B)', 'Romania(O, N)', 'Australia'])
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.compare_searchers">
+    <p>def <span class="ident">compare_searchers</span>(</p><p>problems, header, searchers=[&lt;function breadth_first_tree_search at 0x10b9b4410&gt;, &lt;function breadth_first_search at 0x10b9b4578&gt;, &lt;function depth_first_graph_search at 0x10b9b4500&gt;, &lt;function iterative_deepening_search at 0x10b9b4758&gt;, &lt;function depth_limited_search at 0x10b9b46e0&gt;, &lt;function recursive_best_first_search at 0x10b9b4848&gt;])</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.compare_searchers', this);">Show source &equiv;</a></p>
+  <div id="source-search.compare_searchers" class="source">
+    <pre><code>def compare_searchers(problems, header,
+                      searchers=[breadth_first_tree_search,
+                                 breadth_first_search, depth_first_graph_search,
+                                 iterative_deepening_search,
+                                 depth_limited_search,
+                                 recursive_best_first_search]):
+    def do(searcher, problem):
+        p = InstrumentedProblem(problem)
+        searcher(p)
+        return p
+    table = [[name(s)] + [do(s, p) for p in problems] for s in searchers]
+    print_table(table, header)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.depth_first_graph_search">
+    <p>def <span class="ident">depth_first_graph_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search the deepest nodes in the search tree first.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.depth_first_graph_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.depth_first_graph_search" class="source">
+    <pre><code>def depth_first_graph_search(problem):
+    "Search the deepest nodes in the search tree first."
+    return graph_search(problem, Stack())
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.depth_first_tree_search">
+    <p>def <span class="ident">depth_first_tree_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search the deepest nodes in the search tree first.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.depth_first_tree_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.depth_first_tree_search" class="source">
+    <pre><code>def depth_first_tree_search(problem):
+    "Search the deepest nodes in the search tree first."
+    return tree_search(problem, Stack())
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.depth_limited_search">
+    <p>def <span class="ident">depth_limited_search</span>(</p><p>problem, limit=50)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 3.17]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.depth_limited_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.depth_limited_search" class="source">
+    <pre><code>def depth_limited_search(problem, limit=50):
+    "[Fig. 3.17]"
+    def recursive_dls(node, problem, limit):
+        if problem.goal_test(node.state):
+            return node
+        elif node.depth == limit:
+            return 'cutoff'
+        else:
+            cutoff_occurred = False
+            for child in node.expand(problem):
+                result = recursive_dls(child, problem, limit)
+                if result == 'cutoff':
+                    cutoff_occurred = True
+                elif result is not None:
+                    return result
+            return if_(cutoff_occurred, 'cutoff', None)
+
+    # Body of depth_limited_search:
+    return recursive_dls(Node(problem.initial), problem, limit)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.exact_sqrt">
+    <p>def <span class="ident">exact_sqrt</span>(</p><p>n2)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>If n2 is a perfect square, return its square root, else raise error.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.exact_sqrt', this);">Show source &equiv;</a></p>
+  <div id="source-search.exact_sqrt" class="source">
+    <pre><code>def exact_sqrt(n2):
+    "If n2 is a perfect square, return its square root, else raise error."
+    n = int(math.sqrt(n2))
+    assert n * n == n2
+    return n
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.exp_schedule">
+    <p>def <span class="ident">exp_schedule</span>(</p><p>k=20, lam=0.005, limit=100)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>One possible schedule function for simulated annealing</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.exp_schedule', this);">Show source &equiv;</a></p>
+  <div id="source-search.exp_schedule" class="source">
+    <pre><code>def exp_schedule(k=20, lam=0.005, limit=100):
+    "One possible schedule function for simulated annealing"
+    return lambda t: if_(t < limit, k * math.exp(-lam * t), 0)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.genetic_algorithm">
+    <p>def <span class="ident">genetic_algorithm</span>(</p><p>population, fitness_fn, ngen=1000, pmut=0.1)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 4.8]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.genetic_algorithm', this);">Show source &equiv;</a></p>
+  <div id="source-search.genetic_algorithm" class="source">
+    <pre><code>def genetic_algorithm(population, fitness_fn, ngen=1000, pmut=0.1):
+    "[Fig. 4.8]"
+    for i in range(ngen):
+        new_population = []
+        for i in len(population):
+            fitnesses = map(fitness_fn, population)
+            p1, p2 = weighted_sample_with_replacement(population, fitnesses, 2)
+            child = p1.mate(p2)
+            if random.uniform(0, 1) < pmut:
+                child.mutate()
+            new_population.append(child)
+        population = new_population
+    return argmax(population, fitness_fn)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.genetic_search">
+    <p>def <span class="ident">genetic_search</span>(</p><p>problem, fitness_fn, ngen=1000, pmut=0.1, n=20)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Call genetic_algorithm on the appropriate parts of a problem.
+This requires the problem to have states that can mate and mutate,
+plus a value method that scores states.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.genetic_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.genetic_search" class="source">
+    <pre><code>def genetic_search(problem, fitness_fn, ngen=1000, pmut=0.1, n=20):
+    """Call genetic_algorithm on the appropriate parts of a problem.
+    This requires the problem to have states that can mate and mutate,
+    plus a value method that scores states."""
+    s = problem.initial_state
+    states = [problem.result(s, a) for a in problem.actions(s)]
+    random.shuffle(states)
+    return genetic_algorithm(states[:n], problem.value, ngen, pmut)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.graph_search">
+    <p>def <span class="ident">graph_search</span>(</p><p>problem, frontier)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search through the successors of a problem to find a goal.
+The argument frontier should be an empty queue.
+If two paths reach a state, only use the first one. [Fig. 3.7]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.graph_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.graph_search" class="source">
+    <pre><code>def graph_search(problem, frontier):
+    """Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    If two paths reach a state, only use the first one. [Fig. 3.7]"""
+    frontier.append(Node(problem.initial))
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in explored
+                        and child not in frontier)
+    return None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.greedy_best_first_graph_search">
+    <p>def <span class="ident">greedy_best_first_graph_search</span>(</p><p>problem, f)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search the nodes with the lowest f scores first.
+You specify the function f(node) that you want to minimize; for example,
+if f is a heuristic estimate to the goal, then we have greedy best
+first search; if f is node.depth then we have breadth-first search.
+There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+values will be cached on the nodes as they are computed. So after doing
+a best first search you can examine the f values of the path returned.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.greedy_best_first_graph_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.greedy_best_first_graph_search" class="source">
+    <pre><code>def best_first_graph_search(problem, f):
+    """Search the nodes with the lowest f scores first.
+    You specify the function f(node) that you want to minimize; for example,
+    if f is a heuristic estimate to the goal, then we have greedy best
+    first search; if f is node.depth then we have breadth-first search.
+    There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+    values will be cached on the nodes as they are computed. So after doing
+    a best first search you can examine the f values of the path returned."""
+    f = memoize(f, 'f')
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = PriorityQueue(min, f)
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                frontier.append(child)
+            elif child in frontier:
+                incumbent = frontier[child]
+                if f(child) < f(incumbent):
+                    del frontier[incumbent]
+                    frontier.append(child)
+    return None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.hill_climbing">
+    <p>def <span class="ident">hill_climbing</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>From the initial node, keep choosing the neighbor with highest value,
+stopping when no neighbor is better. [Fig. 4.2]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.hill_climbing', this);">Show source &equiv;</a></p>
+  <div id="source-search.hill_climbing" class="source">
+    <pre><code>def hill_climbing(problem):
+    """From the initial node, keep choosing the neighbor with highest value,
+    stopping when no neighbor is better. [Fig. 4.2]"""
+    current = Node(problem.initial)
+    while True:
+        neighbors = current.expand(problem)
+        if not neighbors:
+            break
+        neighbor = argmax_random_tie(neighbors,
+                                     lambda node: problem.value(node.state))
+        if problem.value(neighbor.state) <= problem.value(current.state):
+            break
+        current = neighbor
+    return current.state
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.iterative_deepening_search">
+    <p>def <span class="ident">iterative_deepening_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 3.18]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.iterative_deepening_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.iterative_deepening_search" class="source">
+    <pre><code>def iterative_deepening_search(problem):
+    "[Fig. 3.18]"
+    for depth in xrange(sys.maxint):
+        result = depth_limited_search(problem, depth)
+        if result != 'cutoff':
+            return result
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.lrta_star_agent">
+    <p>def <span class="ident">lrta_star_agent</span>(</p><p>s1)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 4.24]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.lrta_star_agent', this);">Show source &equiv;</a></p>
+  <div id="source-search.lrta_star_agent" class="source">
+    <pre><code>def lrta_star_agent(s1):
+    "[Fig. 4.24]"
+    unimplemented()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.mutate_boggle">
+    <p>def <span class="ident">mutate_boggle</span>(</p><p>board)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.mutate_boggle', this);">Show source &equiv;</a></p>
+  <div id="source-search.mutate_boggle" class="source">
+    <pre><code>def mutate_boggle(board):
+    i = random.randrange(len(board))
+    oldc = board[i]
+    board[i] = random.choice(random.choice(cubes16)) ##random.choice(boyan_best)
+    return i, oldc
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.online_dfs_agent">
+    <p>def <span class="ident">online_dfs_agent</span>(</p><p>s1)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 4.21]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.online_dfs_agent', this);">Show source &equiv;</a></p>
+  <div id="source-search.online_dfs_agent" class="source">
+    <pre><code>def online_dfs_agent(s1):
+    "[Fig. 4.21]"
+    unimplemented()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.print_boggle">
+    <p>def <span class="ident">print_boggle</span>(</p><p>board)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Print the board in a 2-d array.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.print_boggle', this);">Show source &equiv;</a></p>
+  <div id="source-search.print_boggle" class="source">
+    <pre><code>def print_boggle(board):
+    "Print the board in a 2-d array."
+    n2 = len(board); n = exact_sqrt(n2)
+    for i in range(n2):
+        if i % n == 0 and i > 0: print
+        if board[i] == 'Q': print 'Qu',
+        else: print str(board[i]) + ' ',
+    print
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.random_boggle">
+    <p>def <span class="ident">random_boggle</span>(</p><p>n=4)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a random Boggle board of size n x n.
+We represent a board as a linear list of letters.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.random_boggle', this);">Show source &equiv;</a></p>
+  <div id="source-search.random_boggle" class="source">
+    <pre><code>def random_boggle(n=4):
+    """Return a random Boggle board of size n x n.
+    We represent a board as a linear list of letters."""
+    cubes = [cubes16[i % 16] for i in range(n*n)]
+    random.shuffle(cubes)
+    return map(random.choice, cubes)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.recursive_best_first_search">
+    <p>def <span class="ident">recursive_best_first_search</span>(</p><p>problem, h=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 3.26]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.recursive_best_first_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.recursive_best_first_search" class="source">
+    <pre><code>def recursive_best_first_search(problem, h=None):
+    "[Fig. 3.26]"
+    h = memoize(h or problem.h, 'h')
+
+    def RBFS(problem, node, flimit):
+        if problem.goal_test(node.state):
+            return node, 0   # (The second value is immaterial)
+        successors = node.expand(problem)
+        if len(successors) == 0:
+            return None, infinity
+        for s in successors:
+            s.f = max(s.path_cost + h(s), node.f)
+        while True:
+            successors.sort(lambda x,y: cmp(x.f, y.f)) # Order by lowest f value
+            best = successors[0]
+            if best.f > flimit:
+                return None, best.f
+            if len(successors) > 1:
+                alternative = successors[1].f
+            else:
+                alternative = infinity
+            result, best.f = RBFS(problem, best, min(flimit, alternative))
+            if result is not None:
+                return result, best.f
+
+    node = Node(problem.initial)
+    node.f = h(node)
+    result, bestf = RBFS(problem, node, infinity)
+    return result
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.simulated_annealing">
+    <p>def <span class="ident">simulated_annealing</span>(</p><p>problem, schedule=&lt;function &lt;lambda&gt; at 0x10b9b49b0&gt;)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 4.5]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.simulated_annealing', this);">Show source &equiv;</a></p>
+  <div id="source-search.simulated_annealing" class="source">
+    <pre><code>def simulated_annealing(problem, schedule=exp_schedule()):
+    "[Fig. 4.5]"
+    current = Node(problem.initial)
+    for t in xrange(sys.maxint):
+        T = schedule(t)
+        if T == 0:
+            return current
+        neighbors = current.expand(problem)
+        if not neighbors:
+            return current
+        next = random.choice(neighbors)
+        delta_e = problem.value(next.state) - problem.value(current.state)
+        if delta_e > 0 or probability(math.exp(delta_e/T)):
+            current = next
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.tree_search">
+    <p>def <span class="ident">tree_search</span>(</p><p>problem, frontier)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Search through the successors of a problem to find a goal.
+The argument frontier should be an empty queue.
+Don't worry about repeated paths to a state. [Fig. 3.7]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.tree_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.tree_search" class="source">
+    <pre><code>def tree_search(problem, frontier):
+    """Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    Don't worry about repeated paths to a state. [Fig. 3.7]"""
+    frontier.append(Node(problem.initial))
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        frontier.extend(node.expand(problem))
+    return None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="search.uniform_cost_search">
+    <p>def <span class="ident">uniform_cost_search</span>(</p><p>problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>[Fig. 3.14]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.uniform_cost_search', this);">Show source &equiv;</a></p>
+  <div id="source-search.uniform_cost_search" class="source">
+    <pre><code>def uniform_cost_search(problem):
+    "[Fig. 3.14]"
+    return best_first_graph_search(problem, lambda node: node.path_cost)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+
+    <h2 class="section-title" id="header-classes">Classes</h2>
+      
+      <div class="item">
+      <p id="search.BoggleFinder" class="name">class <span class="ident">BoggleFinder</span></p>
+      
+  
+    <div class="desc"><p>A class that allows you to find all the words in a Boggle board.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder" class="source">
+    <pre><code>class BoggleFinder:
+    """A class that allows you to find all the words in a Boggle board. """
+
+    wordlist = None ## A class variable, holding a wordlist
+
+    def __init__(self, board=None):
+        if BoggleFinder.wordlist is None:
+            BoggleFinder.wordlist = Wordlist("../data/EN-text/wordlist")
+        self.found = {}
+        if board:
+            self.set_board(board)
+
+    def set_board(self, board=None):
+        "Set the board, and find all the words in it."
+        if board is None:
+            board = random_boggle()
+        self.board = board
+        self.neighbors = boggle_neighbors(len(board))
+        self.found = {}
+        for i in range(len(board)):
+            lo, hi = self.wordlist.bounds[board[i]]
+            self.find(lo, hi, i, [], '')
+        return self
+
+    def find(self, lo, hi, i, visited, prefix):
+        """Looking in square i, find the words that continue the prefix,
+        considering the entries in self.wordlist.words[lo:hi], and not
+        revisiting the squares in visited."""
+        if i in visited:
+            return
+        wordpos, is_word = self.wordlist.lookup(prefix, lo, hi)
+        if wordpos is not None:
+            if is_word:
+                self.found[prefix] = True
+            visited.append(i)
+            c = self.board[i]
+            if c == 'Q': c = 'QU'
+            prefix += c
+            for j in self.neighbors[i]:
+                self.find(wordpos, hi, j, visited, prefix)
+            visited.pop()
+
+    def words(self):
+        "The words found."
+        return self.found.keys()
+
+    scores = [0, 0, 0, 0, 1, 2, 3, 5] + [11] * 100
+
+    def score(self):
+        "The total score for the words found, according to the rules."
+        return sum([self.scores[len(w)] for w in self.words()])
+
+    def __len__(self):
+        "The number of words found."
+        return len(self.found)
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.BoggleFinder">BoggleFinder</a></li>
+          </ul>
+          <h3>Class variables</h3>
+            <div class="item">
+            <p id="search.BoggleFinder.scores" class="name">var <span class="ident">scores</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.BoggleFinder.wordlist" class="name">var <span class="ident">wordlist</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.BoggleFinder.found" class="name">var <span class="ident">found</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.BoggleFinder.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, board=None)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder.__init__" class="source">
+    <pre><code>def __init__(self, board=None):
+    if BoggleFinder.wordlist is None:
+        BoggleFinder.wordlist = Wordlist("../data/EN-text/wordlist")
+    self.found = {}
+    if board:
+        self.set_board(board)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.BoggleFinder.find">
+    <p>def <span class="ident">find</span>(</p><p>self, lo, hi, i, visited, prefix)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Looking in square i, find the words that continue the prefix,
+considering the entries in self.wordlist.words[lo:hi], and not
+revisiting the squares in visited.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder.find', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder.find" class="source">
+    <pre><code>def find(self, lo, hi, i, visited, prefix):
+    """Looking in square i, find the words that continue the prefix,
+    considering the entries in self.wordlist.words[lo:hi], and not
+    revisiting the squares in visited."""
+    if i in visited:
+        return
+    wordpos, is_word = self.wordlist.lookup(prefix, lo, hi)
+    if wordpos is not None:
+        if is_word:
+            self.found[prefix] = True
+        visited.append(i)
+        c = self.board[i]
+        if c == 'Q': c = 'QU'
+        prefix += c
+        for j in self.neighbors[i]:
+            self.find(wordpos, hi, j, visited, prefix)
+        visited.pop()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.BoggleFinder.score">
+    <p>def <span class="ident">score</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>The total score for the words found, according to the rules.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder.score', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder.score" class="source">
+    <pre><code>def score(self):
+    "The total score for the words found, according to the rules."
+    return sum([self.scores[len(w)] for w in self.words()])
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.BoggleFinder.set_board">
+    <p>def <span class="ident">set_board</span>(</p><p>self, board=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Set the board, and find all the words in it.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder.set_board', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder.set_board" class="source">
+    <pre><code>def set_board(self, board=None):
+    "Set the board, and find all the words in it."
+    if board is None:
+        board = random_boggle()
+    self.board = board
+    self.neighbors = boggle_neighbors(len(board))
+    self.found = {}
+    for i in range(len(board)):
+        lo, hi = self.wordlist.bounds[board[i]]
+        self.find(lo, hi, i, [], '')
+    return self
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.BoggleFinder.words">
+    <p>def <span class="ident">words</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>The words found.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.BoggleFinder.words', this);">Show source &equiv;</a></p>
+  <div id="source-search.BoggleFinder.words" class="source">
+    <pre><code>def words(self):
+    "The words found."
+    return self.found.keys()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.GAState" class="name">class <span class="ident">GAState</span></p>
+      
+  
+    <div class="desc"><p>Abstract class for individuals in a genetic search.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GAState', this);">Show source &equiv;</a></p>
+  <div id="source-search.GAState" class="source">
+    <pre><code>class GAState:
+    "Abstract class for individuals in a genetic search."
+    def __init__(self, genes):
+        self.genes = genes
+
+    def mate(self, other):
+        "Return a new individual crossing self and other."
+        c = random.randrange(len(self.genes))
+        return self.__class__(self.genes[:c] + other.genes[c:])
+
+    def mutate(self):
+        "Change a few of my genes."
+        abstract
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.GAState">GAState</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.GAState.genes" class="name">var <span class="ident">genes</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.GAState.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, genes)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GAState.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.GAState.__init__" class="source">
+    <pre><code>def __init__(self, genes):
+    self.genes = genes
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GAState.mate">
+    <p>def <span class="ident">mate</span>(</p><p>self, other)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a new individual crossing self and other.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GAState.mate', this);">Show source &equiv;</a></p>
+  <div id="source-search.GAState.mate" class="source">
+    <pre><code>def mate(self, other):
+    "Return a new individual crossing self and other."
+    c = random.randrange(len(self.genes))
+    return self.__class__(self.genes[:c] + other.genes[c:])
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GAState.mutate">
+    <p>def <span class="ident">mutate</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Change a few of my genes.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GAState.mutate', this);">Show source &equiv;</a></p>
+  <div id="source-search.GAState.mutate" class="source">
+    <pre><code>def mutate(self):
+    "Change a few of my genes."
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.Graph" class="name">class <span class="ident">Graph</span></p>
+      
+  
+    <div class="desc"><p>A graph connects nodes (verticies) by edges (links).  Each edge can also
+have a length associated with it.  The constructor call is something like:
+    g = Graph({'A': {'B': 1, 'C': 2})
+this makes a graph with 3 nodes, A, B, and C, with an edge of length 1 from
+A to B,  and an edge of length 2 from A to C.  You can also do:
+    g = Graph({'A': {'B': 1, 'C': 2}, directed=False)
+This makes an undirected graph, so inverse links are also added. The graph
+stays undirected; if you add more links with g.connect('B', 'C', 3), then
+inverse link is also added.  You can use g.nodes() to get a list of nodes,
+g.get('A') to get a dict of links out of A, and g.get('A', 'B') to get the
+length of the link from A to B.  'Lengths' can actually be any object at
+all, and nodes can be any hashable object.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph" class="source">
+    <pre><code>class Graph:
+    """A graph connects nodes (verticies) by edges (links).  Each edge can also
+    have a length associated with it.  The constructor call is something like:
+        g = Graph({'A': {'B': 1, 'C': 2})
+    this makes a graph with 3 nodes, A, B, and C, with an edge of length 1 from
+    A to B,  and an edge of length 2 from A to C.  You can also do:
+        g = Graph({'A': {'B': 1, 'C': 2}, directed=False)
+    This makes an undirected graph, so inverse links are also added. The graph
+    stays undirected; if you add more links with g.connect('B', 'C', 3), then
+    inverse link is also added.  You can use g.nodes() to get a list of nodes,
+    g.get('A') to get a dict of links out of A, and g.get('A', 'B') to get the
+    length of the link from A to B.  'Lengths' can actually be any object at
+    all, and nodes can be any hashable object."""
+
+    def __init__(self, dict=None, directed=True):
+        self.dict = dict or {}
+        self.directed = directed
+        if not directed: self.make_undirected()
+
+    def make_undirected(self):
+        "Make a digraph into an undirected graph by adding symmetric edges."
+        for a in self.dict.keys():
+            for (b, distance) in self.dict[a].items():
+                self.connect1(b, a, distance)
+
+    def connect(self, A, B, distance=1):
+        """Add a link from A and B of given distance, and also add the inverse
+        link if the graph is undirected."""
+        self.connect1(A, B, distance)
+        if not self.directed: self.connect1(B, A, distance)
+
+    def connect1(self, A, B, distance):
+        "Add a link from A to B of given distance, in one direction only."
+        self.dict.setdefault(A,{})[B] = distance
+
+    def get(self, a, b=None):
+        """Return a link distance or a dict of {node: distance} entries.
+        .get(a,b) returns the distance or None;
+        .get(a) returns a dict of {node: distance} entries, possibly {}."""
+        links = self.dict.setdefault(a, {})
+        if b is None: return links
+        else: return links.get(b)
+
+    def nodes(self):
+        "Return a list of nodes in the graph."
+        return self.dict.keys()
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.Graph">Graph</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.Graph.dict" class="name">var <span class="ident">dict</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.Graph.directed" class="name">var <span class="ident">directed</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, dict=None, directed=True)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.__init__" class="source">
+    <pre><code>def __init__(self, dict=None, directed=True):
+    self.dict = dict or {}
+    self.directed = directed
+    if not directed: self.make_undirected()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.connect">
+    <p>def <span class="ident">connect</span>(</p><p>self, A, B, distance=1)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Add a link from A and B of given distance, and also add the inverse
+link if the graph is undirected.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.connect', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.connect" class="source">
+    <pre><code>def connect(self, A, B, distance=1):
+    """Add a link from A and B of given distance, and also add the inverse
+    link if the graph is undirected."""
+    self.connect1(A, B, distance)
+    if not self.directed: self.connect1(B, A, distance)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.connect1">
+    <p>def <span class="ident">connect1</span>(</p><p>self, A, B, distance)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Add a link from A to B of given distance, in one direction only.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.connect1', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.connect1" class="source">
+    <pre><code>def connect1(self, A, B, distance):
+    "Add a link from A to B of given distance, in one direction only."
+    self.dict.setdefault(A,{})[B] = distance
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.get">
+    <p>def <span class="ident">get</span>(</p><p>self, a, b=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a link distance or a dict of {node: distance} entries.
+.get(a,b) returns the distance or None;
+.get(a) returns a dict of {node: distance} entries, possibly {}.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.get', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.get" class="source">
+    <pre><code>def get(self, a, b=None):
+    """Return a link distance or a dict of {node: distance} entries.
+    .get(a,b) returns the distance or None;
+    .get(a) returns a dict of {node: distance} entries, possibly {}."""
+    links = self.dict.setdefault(a, {})
+    if b is None: return links
+    else: return links.get(b)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.make_undirected">
+    <p>def <span class="ident">make_undirected</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Make a digraph into an undirected graph by adding symmetric edges.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.make_undirected', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.make_undirected" class="source">
+    <pre><code>def make_undirected(self):
+    "Make a digraph into an undirected graph by adding symmetric edges."
+    for a in self.dict.keys():
+        for (b, distance) in self.dict[a].items():
+            self.connect1(b, a, distance)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Graph.nodes">
+    <p>def <span class="ident">nodes</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a list of nodes in the graph.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Graph.nodes', this);">Show source &equiv;</a></p>
+  <div id="source-search.Graph.nodes" class="source">
+    <pre><code>def nodes(self):
+    "Return a list of nodes in the graph."
+    return self.dict.keys()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.GraphProblem" class="name">class <span class="ident">GraphProblem</span></p>
+      
+  
+    <div class="desc"><p>The problem of searching a graph from one node to another.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem" class="source">
+    <pre><code>class GraphProblem(Problem):
+    "The problem of searching a graph from one node to another."
+    def __init__(self, initial, goal, graph):
+        Problem.__init__(self, initial, goal)
+        self.graph = graph
+
+    def actions(self, A):
+        "The actions at a graph node are just its neighbors."
+        return self.graph.get(A).keys()
+
+    def result(self, state, action):
+        "The result of going to a neighbor is just that neighbor."
+        return action
+
+    def path_cost(self, cost_so_far, A, action, B):
+        return cost_so_far + (self.graph.get(A,B) or infinity)
+
+    def h(self, node):
+        "h function is straight-line distance from a node's state to goal."
+        locs = getattr(self.graph, 'locations', None)
+        if locs:
+            return int(distance(locs[node.state], locs[self.goal]))
+        else:
+            return infinity
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.GraphProblem">GraphProblem</a></li>
+          <li><a href="#search.Problem">Problem</a></li>
+          <li>__builtin__.object</li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.GraphProblem.goal" class="name">var <span class="ident">goal</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal">goal</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.GraphProblem.graph" class="name">var <span class="ident">graph</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.GraphProblem.initial" class="name">var <span class="ident">initial</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.initial">initial</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, initial, goal, graph)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.__init__">__init__</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>The constructor specifies the initial state, and possibly a goal
+state, if there is a unique goal.  Your subclass's constructor can add
+other arguments.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.__init__" class="source">
+    <pre><code>def __init__(self, initial, goal, graph):
+    Problem.__init__(self, initial, goal)
+    self.graph = graph
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.actions">
+    <p>def <span class="ident">actions</span>(</p><p>self, A)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.actions">actions</a></code>
+    </p>
+
+    
+  
+    <div class="desc"><p>The actions at a graph node are just its neighbors.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.actions', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.actions" class="source">
+    <pre><code>def actions(self, A):
+    "The actions at a graph node are just its neighbors."
+    return self.graph.get(A).keys()
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.goal_test">
+    <p>def <span class="ident">goal_test</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal_test">goal_test</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return True if the state is a goal. The default method compares the
+state to self.goal, as specified in the constructor. Override this
+method if checking against a single self.goal is not enough.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.goal_test', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.goal_test" class="source">
+    <pre><code>def goal_test(self, state):
+    """Return True if the state is a goal. The default method compares the
+    state to self.goal, as specified in the constructor. Override this
+    method if checking against a single self.goal is not enough."""
+    return state == self.goal
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.h">
+    <p>def <span class="ident">h</span>(</p><p>self, node)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>h function is straight-line distance from a node's state to goal.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.h', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.h" class="source">
+    <pre><code>def h(self, node):
+    "h function is straight-line distance from a node's state to goal."
+    locs = getattr(self.graph, 'locations', None)
+    if locs:
+        return int(distance(locs[node.state], locs[self.goal]))
+    else:
+        return infinity
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.path_cost">
+    <p>def <span class="ident">path_cost</span>(</p><p>self, cost_so_far, A, action, B)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.path_cost">path_cost</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return the cost of a solution path that arrives at state2 from
+state1 via action, assuming cost c to get up to state1. If the problem
+is such that the path doesn't matter, this function will only look at
+state2.  If the path does matter, it will consider c and maybe state1
+and action. The default method costs 1 for every step in the path.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.path_cost', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.path_cost" class="source">
+    <pre><code>def path_cost(self, cost_so_far, A, action, B):
+    return cost_so_far + (self.graph.get(A,B) or infinity)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.result">
+    <p>def <span class="ident">result</span>(</p><p>self, state, action)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.result">result</a></code>
+    </p>
+
+    
+  
+    <div class="desc"><p>The result of going to a neighbor is just that neighbor.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.result', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.result" class="source">
+    <pre><code>def result(self, state, action):
+    "The result of going to a neighbor is just that neighbor."
+    return action
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.GraphProblem.value">
+    <p>def <span class="ident">value</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.value">value</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>For optimization problems, each state has a value.  Hill-climbing
+and related algorithms try to maximize this value.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.GraphProblem.value', this);">Show source &equiv;</a></p>
+  <div id="source-search.GraphProblem.value" class="source">
+    <pre><code>def value(self, state):
+    """For optimization problems, each state has a value.  Hill-climbing
+    and related algorithms try to maximize this value."""
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.InstrumentedProblem" class="name">class <span class="ident">InstrumentedProblem</span></p>
+      
+  
+    <div class="desc"><p>Delegates to a problem, and keeps statistics.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem" class="source">
+    <pre><code>class InstrumentedProblem(Problem):
+    """Delegates to a problem, and keeps statistics."""
+
+    def __init__(self, problem):
+        self.problem = problem
+        self.succs = self.goal_tests = self.states = 0
+        self.found = None
+
+    def actions(self, state):
+        self.succs += 1
+        return self.problem.actions(state)
+
+    def result(self, state, action):
+        self.states += 1
+        return self.problem.result(state, action)
+
+    def goal_test(self, state):
+        self.goal_tests += 1
+        result = self.problem.goal_test(state)
+        if result:
+            self.found = state
+        return result
+
+    def path_cost(self, c, state1, action, state2):
+        return self.problem.path_cost(c, state1, action, state2)
+
+    def value(self, state):
+        return self.problem.value(state)
+
+    def __getattr__(self, attr):
+        return getattr(self.problem, attr)
+
+    def __repr__(self):
+        return '<%4d/%4d/%4d/%s>' % (self.succs, self.goal_tests,
+                                     self.states, str(self.found)[:4])
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.InstrumentedProblem">InstrumentedProblem</a></li>
+          <li><a href="#search.Problem">Problem</a></li>
+          <li>__builtin__.object</li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.InstrumentedProblem.found" class="name">var <span class="ident">found</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.InstrumentedProblem.goal" class="name">var <span class="ident">goal</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal">goal</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.InstrumentedProblem.initial" class="name">var <span class="ident">initial</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.initial">initial</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.InstrumentedProblem.problem" class="name">var <span class="ident">problem</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, problem)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.__init__">__init__</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>The constructor specifies the initial state, and possibly a goal
+state, if there is a unique goal.  Your subclass's constructor can add
+other arguments.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.__init__" class="source">
+    <pre><code>def __init__(self, problem):
+    self.problem = problem
+    self.succs = self.goal_tests = self.states = 0
+    self.found = None
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.actions">
+    <p>def <span class="ident">actions</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.actions">actions</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return the actions that can be executed in the given
+state. The result would typically be a list, but if there are
+many actions, consider yielding them one at a time in an
+iterator, rather than building them all at once.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.actions', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.actions" class="source">
+    <pre><code>def actions(self, state):
+    self.succs += 1
+    return self.problem.actions(state)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.goal_test">
+    <p>def <span class="ident">goal_test</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal_test">goal_test</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return True if the state is a goal. The default method compares the
+state to self.goal, as specified in the constructor. Override this
+method if checking against a single self.goal is not enough.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.goal_test', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.goal_test" class="source">
+    <pre><code>def goal_test(self, state):
+    self.goal_tests += 1
+    result = self.problem.goal_test(state)
+    if result:
+        self.found = state
+    return result
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.path_cost">
+    <p>def <span class="ident">path_cost</span>(</p><p>self, c, state1, action, state2)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.path_cost">path_cost</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return the cost of a solution path that arrives at state2 from
+state1 via action, assuming cost c to get up to state1. If the problem
+is such that the path doesn't matter, this function will only look at
+state2.  If the path does matter, it will consider c and maybe state1
+and action. The default method costs 1 for every step in the path.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.path_cost', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.path_cost" class="source">
+    <pre><code>def path_cost(self, c, state1, action, state2):
+    return self.problem.path_cost(c, state1, action, state2)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.result">
+    <p>def <span class="ident">result</span>(</p><p>self, state, action)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.result">result</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return the state that results from executing the given
+action in the given state. The action must be one of
+self.actions(state).</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.result', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.result" class="source">
+    <pre><code>def result(self, state, action):
+    self.states += 1
+    return self.problem.result(state, action)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.InstrumentedProblem.value">
+    <p>def <span class="ident">value</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.value">value</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>For optimization problems, each state has a value.  Hill-climbing
+and related algorithms try to maximize this value.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.InstrumentedProblem.value', this);">Show source &equiv;</a></p>
+  <div id="source-search.InstrumentedProblem.value" class="source">
+    <pre><code>def value(self, state):
+    return self.problem.value(state)
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.NQueensProblem" class="name">class <span class="ident">NQueensProblem</span></p>
+      
+  
+    <div class="desc"><p>The problem of placing N queens on an NxN board with none attacking
+each other.  A state is represented as an N-element array, where
+a value of r in the c-th entry means there is a queen at column c,
+row r, and a value of None means that the c-th column has not been
+filled in yet.  We fill in columns left to right.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>depth_first_tree_search(NQueensProblem(8))
+<Node [7, 3, 0, 2, 5, 1, 6, 4]></p>
+</blockquote>
+</blockquote>
+</blockquote></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem" class="source">
+    <pre><code>class NQueensProblem(Problem):
+    """The problem of placing N queens on an NxN board with none attacking
+    each other.  A state is represented as an N-element array, where
+    a value of r in the c-th entry means there is a queen at column c,
+    row r, and a value of None means that the c-th column has not been
+    filled in yet.  We fill in columns left to right.
+    >>> depth_first_tree_search(NQueensProblem(8))
+    <Node [7, 3, 0, 2, 5, 1, 6, 4]>
+    """
+    def __init__(self, N):
+        self.N = N
+        self.initial = [None] * N
+
+    def actions(self, state):
+        "In the leftmost empty column, try all non-conflicting rows."
+        if state[-1] is not None:
+            return [] # All columns filled; no successors
+        else:
+            col = state.index(None)
+            return [row for row in range(self.N)
+                    if not self.conflicted(state, row, col)]
+
+    def result(self, state, row):
+        "Place the next queen at the given row."
+        col = state.index(None)
+        new = state[:]
+        new[col] = row
+        return new
+
+    def conflicted(self, state, row, col):
+        "Would placing a queen at (row, col) conflict with anything?"
+        return any(self.conflict(row, col, state[c], c)
+                   for c in range(col))
+
+    def conflict(self, row1, col1, row2, col2):
+        "Would putting two queens in (row1, col1) and (row2, col2) conflict?"
+        return (row1 == row2 ## same row
+                or col1 == col2 ## same column
+                or row1-col1 == row2-col2  ## same \ diagonal
+                or row1+col1 == row2+col2) ## same / diagonal
+
+    def goal_test(self, state):
+        "Check if all columns filled, no conflicts."
+        if state[-1] is None:
+            return False
+        return not any(self.conflicted(state, state[col], col)
+                       for col in range(len(state)))
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.NQueensProblem">NQueensProblem</a></li>
+          <li><a href="#search.Problem">Problem</a></li>
+          <li>__builtin__.object</li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.NQueensProblem.N" class="name">var <span class="ident">N</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.NQueensProblem.goal" class="name">var <span class="ident">goal</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal">goal</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.NQueensProblem.initial" class="name">var <span class="ident">initial</span></p>
+            
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.initial">initial</a></code>
+    </p>
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, N)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.__init__">__init__</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>The constructor specifies the initial state, and possibly a goal
+state, if there is a unique goal.  Your subclass's constructor can add
+other arguments.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.__init__" class="source">
+    <pre><code>def __init__(self, N):
+    self.N = N
+    self.initial = [None] * N
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.actions">
+    <p>def <span class="ident">actions</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.actions">actions</a></code>
+    </p>
+
+    
+  
+    <div class="desc"><p>In the leftmost empty column, try all non-conflicting rows.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.actions', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.actions" class="source">
+    <pre><code>def actions(self, state):
+    "In the leftmost empty column, try all non-conflicting rows."
+    if state[-1] is not None:
+        return [] # All columns filled; no successors
+    else:
+        col = state.index(None)
+        return [row for row in range(self.N)
+                if not self.conflicted(state, row, col)]
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.conflict">
+    <p>def <span class="ident">conflict</span>(</p><p>self, row1, col1, row2, col2)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Would putting two queens in (row1, col1) and (row2, col2) conflict?</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.conflict', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.conflict" class="source">
+    <pre><code>def conflict(self, row1, col1, row2, col2):
+    "Would putting two queens in (row1, col1) and (row2, col2) conflict?"
+    return (row1 == row2 ## same row
+            or col1 == col2 ## same column
+            or row1-col1 == row2-col2  ## same \ diagonal
+            or row1+col1 == row2+col2) ## same / diagonal
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.conflicted">
+    <p>def <span class="ident">conflicted</span>(</p><p>self, state, row, col)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Would placing a queen at (row, col) conflict with anything?</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.conflicted', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.conflicted" class="source">
+    <pre><code>def conflicted(self, state, row, col):
+    "Would placing a queen at (row, col) conflict with anything?"
+    return any(self.conflict(row, col, state[c], c)
+               for c in range(col))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.goal_test">
+    <p>def <span class="ident">goal_test</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.goal_test">goal_test</a></code>
+    </p>
+
+    
+  
+    <div class="desc"><p>Check if all columns filled, no conflicts.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.goal_test', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.goal_test" class="source">
+    <pre><code>def goal_test(self, state):
+    "Check if all columns filled, no conflicts."
+    if state[-1] is None:
+        return False
+    return not any(self.conflicted(state, state[col], col)
+                   for col in range(len(state)))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.path_cost">
+    <p>def <span class="ident">path_cost</span>(</p><p>self, c, state1, action, state2)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.path_cost">path_cost</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>Return the cost of a solution path that arrives at state2 from
+state1 via action, assuming cost c to get up to state1. If the problem
+is such that the path doesn't matter, this function will only look at
+state2.  If the path does matter, it will consider c and maybe state1
+and action. The default method costs 1 for every step in the path.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.path_cost', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.path_cost" class="source">
+    <pre><code>def path_cost(self, c, state1, action, state2):
+    """Return the cost of a solution path that arrives at state2 from
+    state1 via action, assuming cost c to get up to state1. If the problem
+    is such that the path doesn't matter, this function will only look at
+    state2.  If the path does matter, it will consider c and maybe state1
+    and action. The default method costs 1 for every step in the path."""
+    return c + 1
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.result">
+    <p>def <span class="ident">result</span>(</p><p>self, state, row)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.result">result</a></code>
+    </p>
+
+    
+  
+    <div class="desc"><p>Place the next queen at the given row.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.result', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.result" class="source">
+    <pre><code>def result(self, state, row):
+    "Place the next queen at the given row."
+    col = state.index(None)
+    new = state[:]
+    new[col] = row
+    return new
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.NQueensProblem.value">
+    <p>def <span class="ident">value</span>(</p><p>self, state)</p>
+    </div>
+    
+    <p class="inheritance">
+     <strong>Inheritance:</strong>
+       <code><a href="#search.Problem">Problem</a></code>.<code><a href="#search.Problem.value">value</a></code>
+    </p>
+
+    
+  
+    <div class="desc inherited"><p>For optimization problems, each state has a value.  Hill-climbing
+and related algorithms try to maximize this value.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.NQueensProblem.value', this);">Show source &equiv;</a></p>
+  <div id="source-search.NQueensProblem.value" class="source">
+    <pre><code>def value(self, state):
+    """For optimization problems, each state has a value.  Hill-climbing
+    and related algorithms try to maximize this value."""
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.Node" class="name">class <span class="ident">Node</span></p>
+      
+  
+    <div class="desc"><p>A node in a search tree. Contains a pointer to the parent (the node
+that this is a successor of) and to the actual state for this node. Note
+that if a state is arrived at by two paths, then there are two nodes with
+the same state.  Also includes the action that got us to this state, and
+the total path_cost (also known as g) to reach the node.  Other functions
+may add an f and h value; see best_first_graph_search and astar_search for
+an explanation of how the f and h values are handled. You will not need to
+subclass this class.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node" class="source">
+    <pre><code>class Node:
+    """A node in a search tree. Contains a pointer to the parent (the node
+    that this is a successor of) and to the actual state for this node. Note
+    that if a state is arrived at by two paths, then there are two nodes with
+    the same state.  Also includes the action that got us to this state, and
+    the total path_cost (also known as g) to reach the node.  Other functions
+    may add an f and h value; see best_first_graph_search and astar_search for
+    an explanation of how the f and h values are handled. You will not need to
+    subclass this class."""
+
+    def __init__(self, state, parent=None, action=None, path_cost=0):
+        "Create a search tree Node, derived from a parent by an action."
+        update(self, state=state, parent=parent, action=action,
+               path_cost=path_cost, depth=0)
+        if parent:
+            self.depth = parent.depth + 1
+
+    def __repr__(self):
+        return "<Node %s>" % (self.state,)
+
+    def expand(self, problem):
+        "List the nodes reachable in one step from this node."
+        return [self.child_node(problem, action)
+                for action in problem.actions(self.state)]
+
+    def child_node(self, problem, action):
+        "Fig. 3.10"
+        next = problem.result(self.state, action)
+        return Node(next, self, action,
+                    problem.path_cost(self.path_cost, self.state, action, next))
+
+    def solution(self):
+        "Return the sequence of actions to go from the root to this node."
+        return [node.action for node in self.path()[1:]]
+
+    def path(self):
+        "Return a list of nodes forming the path from the root to this node."
+        node, path_back = self, []
+        while node:
+            path_back.append(node)
+            node = node.parent
+        return list(reversed(path_back))
+
+    # We want for a queue of nodes in breadth_first_search or
+    # astar_search to have no duplicated states, so we treat nodes
+    # with the same state as equal. [Problem: this may not be what you
+    # want in other contexts.]
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    def __hash__(self):
+        return hash(self.state)
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.Node">Node</a></li>
+          </ul>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.Node.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, state, parent=None, action=None, path_cost=0)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Create a search tree Node, derived from a parent by an action.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node.__init__" class="source">
+    <pre><code>def __init__(self, state, parent=None, action=None, path_cost=0):
+    "Create a search tree Node, derived from a parent by an action."
+    update(self, state=state, parent=parent, action=action,
+           path_cost=path_cost, depth=0)
+    if parent:
+        self.depth = parent.depth + 1
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Node.child_node">
+    <p>def <span class="ident">child_node</span>(</p><p>self, problem, action)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Fig. 3.10</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node.child_node', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node.child_node" class="source">
+    <pre><code>def child_node(self, problem, action):
+    "Fig. 3.10"
+    next = problem.result(self.state, action)
+    return Node(next, self, action,
+                problem.path_cost(self.path_cost, self.state, action, next))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Node.expand">
+    <p>def <span class="ident">expand</span>(</p><p>self, problem)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>List the nodes reachable in one step from this node.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node.expand', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node.expand" class="source">
+    <pre><code>def expand(self, problem):
+    "List the nodes reachable in one step from this node."
+    return [self.child_node(problem, action)
+            for action in problem.actions(self.state)]
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Node.path">
+    <p>def <span class="ident">path</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return a list of nodes forming the path from the root to this node.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node.path', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node.path" class="source">
+    <pre><code>def path(self):
+    "Return a list of nodes forming the path from the root to this node."
+    node, path_back = self, []
+    while node:
+        path_back.append(node)
+        node = node.parent
+    return list(reversed(path_back))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Node.solution">
+    <p>def <span class="ident">solution</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return the sequence of actions to go from the root to this node.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Node.solution', this);">Show source &equiv;</a></p>
+  <div id="source-search.Node.solution" class="source">
+    <pre><code>def solution(self):
+    "Return the sequence of actions to go from the root to this node."
+    return [node.action for node in self.path()[1:]]
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.Problem" class="name">class <span class="ident">Problem</span></p>
+      
+  
+    <div class="desc"><p>The abstract class for a formal problem.  You should subclass
+this and implement the methods actions and result, and possibly
+<strong>init</strong>, goal_test, and path_cost. Then you will create instances
+of your subclass and solve them with the various search functions.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem" class="source">
+    <pre><code>class Problem(object):
+    """The abstract class for a formal problem.  You should subclass
+    this and implement the methods actions and result, and possibly
+    __init__, goal_test, and path_cost. Then you will create instances
+    of your subclass and solve them with the various search functions."""
+
+    def __init__(self, initial, goal=None):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal.  Your subclass's constructor can add
+        other arguments."""
+        self.initial = initial; self.goal = goal
+
+    def actions(self, state):
+        """Return the actions that can be executed in the given
+        state. The result would typically be a list, but if there are
+        many actions, consider yielding them one at a time in an
+        iterator, rather than building them all at once."""
+        abstract
+
+    def result(self, state, action):
+        """Return the state that results from executing the given
+        action in the given state. The action must be one of
+        self.actions(state)."""
+        abstract
+
+    def goal_test(self, state):
+        """Return True if the state is a goal. The default method compares the
+        state to self.goal, as specified in the constructor. Override this
+        method if checking against a single self.goal is not enough."""
+        return state == self.goal
+
+    def path_cost(self, c, state1, action, state2):
+        """Return the cost of a solution path that arrives at state2 from
+        state1 via action, assuming cost c to get up to state1. If the problem
+        is such that the path doesn't matter, this function will only look at
+        state2.  If the path does matter, it will consider c and maybe state1
+        and action. The default method costs 1 for every step in the path."""
+        return c + 1
+
+    def value(self, state):
+        """For optimization problems, each state has a value.  Hill-climbing
+        and related algorithms try to maximize this value."""
+        abstract
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.Problem">Problem</a></li>
+          <li>__builtin__.object</li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.Problem.goal" class="name">var <span class="ident">goal</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.Problem.initial" class="name">var <span class="ident">initial</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, initial, goal=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>The constructor specifies the initial state, and possibly a goal
+state, if there is a unique goal.  Your subclass's constructor can add
+other arguments.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.__init__" class="source">
+    <pre><code>def __init__(self, initial, goal=None):
+    """The constructor specifies the initial state, and possibly a goal
+    state, if there is a unique goal.  Your subclass's constructor can add
+    other arguments."""
+    self.initial = initial; self.goal = goal
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.actions">
+    <p>def <span class="ident">actions</span>(</p><p>self, state)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return the actions that can be executed in the given
+state. The result would typically be a list, but if there are
+many actions, consider yielding them one at a time in an
+iterator, rather than building them all at once.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.actions', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.actions" class="source">
+    <pre><code>def actions(self, state):
+    """Return the actions that can be executed in the given
+    state. The result would typically be a list, but if there are
+    many actions, consider yielding them one at a time in an
+    iterator, rather than building them all at once."""
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.goal_test">
+    <p>def <span class="ident">goal_test</span>(</p><p>self, state)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return True if the state is a goal. The default method compares the
+state to self.goal, as specified in the constructor. Override this
+method if checking against a single self.goal is not enough.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.goal_test', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.goal_test" class="source">
+    <pre><code>def goal_test(self, state):
+    """Return True if the state is a goal. The default method compares the
+    state to self.goal, as specified in the constructor. Override this
+    method if checking against a single self.goal is not enough."""
+    return state == self.goal
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.path_cost">
+    <p>def <span class="ident">path_cost</span>(</p><p>self, c, state1, action, state2)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return the cost of a solution path that arrives at state2 from
+state1 via action, assuming cost c to get up to state1. If the problem
+is such that the path doesn't matter, this function will only look at
+state2.  If the path does matter, it will consider c and maybe state1
+and action. The default method costs 1 for every step in the path.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.path_cost', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.path_cost" class="source">
+    <pre><code>def path_cost(self, c, state1, action, state2):
+    """Return the cost of a solution path that arrives at state2 from
+    state1 via action, assuming cost c to get up to state1. If the problem
+    is such that the path doesn't matter, this function will only look at
+    state2.  If the path does matter, it will consider c and maybe state1
+    and action. The default method costs 1 for every step in the path."""
+    return c + 1
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.result">
+    <p>def <span class="ident">result</span>(</p><p>self, state, action)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Return the state that results from executing the given
+action in the given state. The action must be one of
+self.actions(state).</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.result', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.result" class="source">
+    <pre><code>def result(self, state, action):
+    """Return the state that results from executing the given
+    action in the given state. The action must be one of
+    self.actions(state)."""
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Problem.value">
+    <p>def <span class="ident">value</span>(</p><p>self, state)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>For optimization problems, each state has a value.  Hill-climbing
+and related algorithms try to maximize this value.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Problem.value', this);">Show source &equiv;</a></p>
+  <div id="source-search.Problem.value" class="source">
+    <pre><code>def value(self, state):
+    """For optimization problems, each state has a value.  Hill-climbing
+    and related algorithms try to maximize this value."""
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.SimpleProblemSolvingAgentProgram" class="name">class <span class="ident">SimpleProblemSolvingAgentProgram</span></p>
+      
+  
+    <div class="desc"><p>Abstract framework for a problem-solving agent. [Fig. 3.1]</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram" class="source">
+    <pre><code>class SimpleProblemSolvingAgentProgram:
+    """Abstract framework for a problem-solving agent. [Fig. 3.1]"""
+    def __init__(self, initial_state=None):
+        update(self, state=initial_state, seq=[])
+
+    def __call__(self, percept):
+        self.state = self.update_state(self.state, percept)
+        if not self.seq:
+            goal = self.formulate_goal(self.state)
+            problem = self.formulate_problem(self.state, goal)
+            self.seq = self.search(problem)
+            if not self.seq: return None
+        return self.seq.pop(0)
+
+    def update_state(self, percept):
+        abstract
+
+    def formulate_goal(self, state):
+        abstract
+
+    def formulate_problem(self, state, goal):
+        abstract
+
+    def search(self, problem):
+        abstract
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.SimpleProblemSolvingAgentProgram">SimpleProblemSolvingAgentProgram</a></li>
+          </ul>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.SimpleProblemSolvingAgentProgram.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, initial_state=None)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram.__init__" class="source">
+    <pre><code>def __init__(self, initial_state=None):
+    update(self, state=initial_state, seq=[])
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.SimpleProblemSolvingAgentProgram.formulate_goal">
+    <p>def <span class="ident">formulate_goal</span>(</p><p>self, state)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram.formulate_goal', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram.formulate_goal" class="source">
+    <pre><code>def formulate_goal(self, state):
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.SimpleProblemSolvingAgentProgram.formulate_problem">
+    <p>def <span class="ident">formulate_problem</span>(</p><p>self, state, goal)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram.formulate_problem', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram.formulate_problem" class="source">
+    <pre><code>def formulate_problem(self, state, goal):
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.SimpleProblemSolvingAgentProgram.search">
+    <p>def <span class="ident">search</span>(</p><p>self, problem)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram.search', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram.search" class="source">
+    <pre><code>def search(self, problem):
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.SimpleProblemSolvingAgentProgram.update_state">
+    <p>def <span class="ident">update_state</span>(</p><p>self, percept)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.SimpleProblemSolvingAgentProgram.update_state', this);">Show source &equiv;</a></p>
+  <div id="source-search.SimpleProblemSolvingAgentProgram.update_state" class="source">
+    <pre><code>def update_state(self, percept):
+    abstract
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+      
+      <div class="item">
+      <p id="search.Wordlist" class="name">class <span class="ident">Wordlist</span></p>
+      
+  
+    <div class="desc"><p>This class holds a list of words. You can use (word in wordlist)
+to check if a word is in the list, or wordlist.lookup(prefix)
+to see if prefix starts any of the words in the list.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Wordlist', this);">Show source &equiv;</a></p>
+  <div id="source-search.Wordlist" class="source">
+    <pre><code>class Wordlist:
+    """This class holds a list of words. You can use (word in wordlist)
+    to check if a word is in the list, or wordlist.lookup(prefix)
+    to see if prefix starts any of the words in the list."""
+    def __init__(self, filename, min_len=3):
+        lines = open(filename).read().upper().split()
+        self.words = [word for word in lines if len(word) >= min_len]
+        self.words.sort()
+        self.bounds = {}
+        for c in ALPHABET:
+            c2 = chr(ord(c) + 1)
+            self.bounds[c] = (bisect.bisect(self.words, c),
+                              bisect.bisect(self.words, c2))
+
+    def lookup(self, prefix, lo=0, hi=None):
+        """See if prefix is in dictionary, as a full word or as a prefix.
+        Return two values: the first is the lowest i such that
+        words[i].startswith(prefix), or is None; the second is
+        True iff prefix itself is in the Wordlist."""
+        words = self.words
+        if hi is None: hi = len(words)
+        i = bisect.bisect_left(words, prefix, lo, hi)
+        if i < len(words) and words[i].startswith(prefix):
+            return i, (words[i] == prefix)
+        else:
+            return None, False
+
+    def __contains__(self, word):
+        return self.lookup(word)[1]
+
+    def __len__(self):
+        return len(self.words)
+</code></pre>
+  </div>
+</div>
+
+
+      <div class="class">
+          <h3>Ancestors (in MRO)</h3>
+          <ul class="class_list">
+          <li><a href="#search.Wordlist">Wordlist</a></li>
+          </ul>
+          <h3>Instance variables</h3>
+            <div class="item">
+            <p id="search.Wordlist.bounds" class="name">var <span class="ident">bounds</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="search.Wordlist.words" class="name">var <span class="ident">words</span></p>
+            
+
+            
+  
+  <div class="source_cont">
+</div>
+
+            </div>
+          <h3>Methods</h3>
+            
+  <div class="item">
+    <div class="name def" id="search.Wordlist.__init__">
+    <p>def <span class="ident">__init__</span>(</p><p>self, filename, min_len=3)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Wordlist.__init__', this);">Show source &equiv;</a></p>
+  <div id="source-search.Wordlist.__init__" class="source">
+    <pre><code>def __init__(self, filename, min_len=3):
+    lines = open(filename).read().upper().split()
+    self.words = [word for word in lines if len(word) >= min_len]
+    self.words.sort()
+    self.bounds = {}
+    for c in ALPHABET:
+        c2 = chr(ord(c) + 1)
+        self.bounds[c] = (bisect.bisect(self.words, c),
+                          bisect.bisect(self.words, c2))
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="search.Wordlist.lookup">
+    <p>def <span class="ident">lookup</span>(</p><p>self, prefix, lo=0, hi=None)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>See if prefix is in dictionary, as a full word or as a prefix.
+Return two values: the first is the lowest i such that
+words[i].startswith(prefix), or is None; the second is
+True iff prefix itself is in the Wordlist.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-search.Wordlist.lookup', this);">Show source &equiv;</a></p>
+  <div id="source-search.Wordlist.lookup" class="source">
+    <pre><code>def lookup(self, prefix, lo=0, hi=None):
+    """See if prefix is in dictionary, as a full word or as a prefix.
+    Return two values: the first is the lowest i such that
+    words[i].startswith(prefix), or is None; the second is
+    True iff prefix itself is in the Wordlist."""
+    words = self.words
+    if hi is None: hi = len(words)
+    i = bisect.bisect_left(words, prefix, lo, hi)
+    if i < len(words) and words[i].startswith(prefix):
+        return i, (words[i] == prefix)
+    else:
+        return None, False
+</code></pre>
+  </div>
+</div>
+
+  </div>
+  
+      </div>
+      </div>
+
+  </section>
+
+    </article>
+  <div class="clear"> </div>
+  <footer id="footer">
+    <p>
+      Documentation generated by
+      <a href="https://github.com/BurntSushi/pdoc">pdoc 0.3.2</a>
+    </p>
+
+    <p>pdoc is in the public domain with the
+      <a href="http://unlicense.org">UNLICENSE</a></p>
+
+    <p>Design by <a href="http://nadh.in">Kailash Nadh</a></p>
+  </footer>
+</div>
+</body>
+</html>

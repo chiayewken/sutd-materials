@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  jupyter-nlp:
+    build: "."
+    ports:
+      - 8889:8888
+    environment:
+      - JUPYTER_ENABLE_LAB=1
+      - GRANT_SUDO=1
+    volumes:
+      - .:/app
