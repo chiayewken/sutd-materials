@@ -1,27 +1,37 @@
-# Learning to learn robust intent classification
+# Meta-Learning for Few-Shot Text Classification
 ## Usage
-```
-pip install -r requirements.txt
-python reptile.py
-```
-## Introduction
-Dialog systems such as chat-bots allow humans to naturally interact with digital systems.
-Concretely, intent classification aims to categorize dialog text into a fixed 
-set of labels in order for the dialog system to produce the appropriate response.
-This is closely related to general text classification in Natural Language Processing.
+Tested on Ubuntu 18.04, Python 3.6.9
+* Install requirements: ```pip3 install -r requirements.txt```
+* Train with Reptile algorithm: ```python3 reptile.py```
+* Train with Prototypical Network algorithm: ```python3 prototype.py```
+* Run interactive user interface demo: ```streamlit run demo.py```
 
-However, there are some specific challenges:
-* There may be many intent labels and some may be closely related
-* Out-of-scope queries are inevitable, and detection is necessary
- to avoid derailing the user experience
-* Training data is usually limited eg 100 samples per label
-* The classifier should be able to accept new labels in the future
+## Overview
+Few-shot text classifiation is challenging and current research 
+focuses on meta-learning methods, using word embedding features and Prototypical Network variants. 
+We compare Prototypical Networks with the Reptile Algorithm and leverage deep sentence
+embedding features from pre-trained language models. The models are evaluated on a dialog intent
+classification dataset and results show that using sentence embeddings from deep pre-trained language
+models is superior to word-embedding features, and Prototypical Networks have a slight
+advantage over Reptile.
 
-Compared to machine learning models, humans are able to learn quickly, 
-and generalize well even with little training data.
-Humans are also robust and able to detect anomalous data more easily.
-However, this ability is not completely innate to most humans, and must be learnt.
-Hence, the goal of a meta-learner is learning to learn any new task quickly.
+## Results
+|            | Reptile (GLoVE + LSTM) | No meta-learning (Sentence-BERT) | Reptile (Sentence-BERT) | Prototypical Networks (Sentence-BERT) |
+|-----------:|------------------------|----------------------------------|-------------------------|---------------------------------------|
+| Meta-train | N/A                    | N/A                              | 0.947                   | 0.928                                 |
+| Meta-valid | N/A                    | N/A                              | 0.848                   | 0.848                                 |
+| Meta-test  | 0.361                  | 0.512                            | 0.848                   | 0.904                                 |
 
-We propose to apply meta-learning techniques to produce a meta-learner for
-for robust intent classification.
+Using GLoVE embeddings instead of Sentence-BERT embeddings results in worse performance.
+Hence, sentence representations from pre-trained language model is superior.
+This could be due to lack of deep contextual information in word embeddings, 
+smaller dimension size (300 vs 768) and word-level tokenization which is vulnerable to 
+out-of-vocabulary issues at test time. 
+
+Meta-learning was shown to be crucial in order to generalize well to unseen tasks, 
+and Prototypical Networks are slightly superior in performance. 
+This is likely due to a simpler inductive bias for classification. 
+They do not assume a fixed set of class outputs, instead depending on the support set
+to construct prototype representation, while the classification is made by pairwise distance comparison.
+This is more flexible than optimization-based approaches like Reptile, where the
+model must be re-trained if there are new classes.

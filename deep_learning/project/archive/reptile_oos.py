@@ -6,17 +6,16 @@ from torch.utils.data import DataLoader, TensorDataset
 from datasets import Splits, IntentMetaLoader
 from models import LinearClassifierWithOOS
 from reptile import ReptileSystem, HyperParams
-from utils import acc_score
 
 
 class ReptileSystemWithOOS(ReptileSystem):
     def __init__(
         self,
-        hparams: HyperParams,
+        hp: HyperParams,
         loaders: Dict[str, IntentMetaLoader],
         net: torch.nn.Module,
     ):
-        super().__init__(hparams, loaders, net)
+        super().__init__(hp, loaders, net)
         self.generators_oos = self.get_generators_oos()
         self.criterion_oos = torch.nn.BCEWithLogitsLoss()
 
@@ -50,8 +49,8 @@ class ReptileSystemWithOOS(ReptileSystem):
             if is_train:
                 self.opt_inner.zero_grad()
             outputs, outputs_pos = self.net(inputs)
-            # loss = self.criterion(outputs, targets)
-            # acc = acc_score(outputs, targets)
+            # loss = self.criterion(x, y)
+            # acc = self.get_accuracy(x, y)
 
             _, outputs_neg = self.net(inputs_oos)
             loss_pos, acc_pos = self.get_oos_loss(outputs_pos, is_positive=True)
@@ -78,7 +77,7 @@ class ReptileSystemWithOOS(ReptileSystem):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         targets = torch.ones_like(outputs) * int(is_positive)
         loss = self.criterion_oos(outputs, targets)
-        acc = acc_score(outputs, targets)
+        acc = self.get_accuracy(outputs, targets)
         return loss, acc
 
 
@@ -88,7 +87,7 @@ def run_intent(root: str):
     )
     loaders = {s: IntentMetaLoader(hparams, s) for s in ["train", "val"]}
     net = LinearClassifierWithOOS(
-        num_in=loaders[Splits.train].embedder.size_embed, num_out=hparams.num_ways
+        num_in=loaders[Splits.train].embedder.embed_size, num_out=hparams.num_ways
     )
     system = ReptileSystemWithOOS(hparams, loaders, net)
     system.run_train()

@@ -7,3 +7,4 @@ torch==1.4.0
 scikit_learn==0.22.2.post1
 sentence_transformers==0.2.5.1
 torchmeta==1.4.0
+streamlit==0.58.0

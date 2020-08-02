@@ -1,49 +1,18 @@
 import json
 from pathlib import Path
-from typing import Tuple, List, Dict, Iterable
+from typing import Tuple, List, Dict
 
 import numpy as np
 import pandas as pd
-import sentence_transformers
 import torch
 import torchmeta
 import torchvision
 from sklearn import metrics, linear_model
 from torch.utils.data import Dataset
-from torchvision.datasets.utils import download_url, extract_archive
+from torchvision.datasets.utils import download_url
 
-from utils import get_device, shuffle_multi_split, HyperParams
-
-
-class SentenceBERT(sentence_transformers.SentenceTransformer):
-    def __init__(self, cache_dir="cache"):
-        self.cache_dir = Path(cache_dir)
-        self.dir_model = self.download()
-        self.embed_size = 768
-        super().__init__(str(self.dir_model), device=get_device())
-
-    def download(self):
-        url = "https://github.com/chiayewken/sutd-materials/releases/download/v0.1.0/bert-base-nli-mean-tokens.zip"
-        path_zip = self.cache_dir / Path(url).name
-        if not path_zip.exists():
-            download_url(url, self.cache_dir, filename=path_zip.name)
-        dir_model = self.cache_dir / "bert"
-        if not dir_model.exists():
-            extract_archive(str(path_zip), str(dir_model))
-        return dir_model
-
-    def embed_texts(self, texts: List[str], do_cache=True) -> np.ndarray:
-        def get_embeds():
-            return np.stack(self.encode(texts, show_progress_bar=True))
-
-        if not do_cache:
-            return get_embeds()
-        path_cache = self.cache_dir / f"embeds_{len(texts)}.npy"
-        if not path_cache.exists():
-            np.save(str(path_cache), get_embeds())
-        embeds = np.load(str(path_cache))
-        assert embeds.shape == (len(texts), self.embed_size)
-        return embeds
+from embedding import WordEmbedder, SentenceBERT
+from utils import shuffle_multi_split, HyperParams
 
 
 class Splits:
@@ -63,14 +32,18 @@ class Splits:
         splits = [Splits.train, Splits.val, Splits.test]
         return indices_split[splits.index(data_split)]
 
+    @classmethod
+    def get_all(cls):
+        return cls.train, cls.val, cls.test
+
 
 class OmniglotMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
-    def __init__(self, hparams: HyperParams, data_split: str):
+    def __init__(self, hp: HyperParams, data_split: str):
         assert Splits.check(data_split)
         self.data_split = data_split
-        self.params = hparams
+        self.params = hp
         self.dataset, self.split_dataset = self.get_dataset()
-        super().__init__(self.split_dataset, hparams.bs_outer, num_workers=2)
+        super().__init__(self.split_dataset, hp.bs_outer, num_workers=2)
         self.plot_sample()
 
     def get_dataset(self, image_size=28):
@@ -96,7 +69,7 @@ class OmniglotMetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
             dataset,
             shuffle=True,
             num_train_per_class=self.params.num_shots,
-            num_test_per_class=self.params.num_shots_test,
+            num_test_per_class=self.params.num_shots,
         )
         return dataset, split_dataset
 
@@ -152,6 +125,7 @@ class ClassDataset(torchmeta.utils.data.ClassDataset):
             label2data[y].append(x)
 
         labels_keep = Splits.apply(sorted(label2data.keys()), self.meta_split)
+        print(dict(meta_split=self.meta_split, labels_keep=labels_keep))
         datasets = []
         for j, (label, data) in enumerate(label2data.items()):
             if label not in labels_keep:
@@ -171,7 +145,12 @@ class MetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
     """Data loader class for meta-learning, samples batches of episodes/tasks"""
 
     def __init__(
-        self, dataset: Dataset, data_split: str, hparams: HyperParams, transform=None
+        self,
+        dataset: Dataset,
+        data_split: str,
+        hp: HyperParams,
+        transform=None,
+        num_workers=0,
     ):
         assert Splits.check(data_split)
         self.transform = transform
@@ -179,42 +158,48 @@ class MetaLoader(torchmeta.utils.data.BatchMetaDataLoader):
         self.ds_class = ClassDataset(self.ds_orig, data_split, transform)
         self.ds_meta = torchmeta.utils.data.CombinationMetaDataset(
             dataset=self.ds_class,
-            num_classes_per_task=hparams.num_ways,
-            target_transform=torchmeta.transforms.Categorical(hparams.num_ways),
+            num_classes_per_task=hp.num_ways,
+            target_transform=torchmeta.transforms.Categorical(hp.num_ways),
         )
         self.ds_split = torchmeta.transforms.ClassSplitter(
             self.ds_meta,
             shuffle=(data_split == Splits.train),
-            num_train_per_class=hparams.num_shots,
-            num_test_per_class=hparams.num_shots_test,
+            # num_train_per_class=hp.num_shots,
+            # num_test_per_class=hp.num_shots,
+            num_samples_per_class={s: hp.num_shots for s in Splits.get_all()},
         )
         super().__init__(
             dataset=self.ds_split,
-            batch_size=hparams.bs_outer,
+            batch_size=hp.bs_outer,
             shuffle=(data_split == Splits.train),
-            num_workers=2,
+            num_workers=num_workers,
         )
+
+
+class MetaTask:
+    def __init__(self, task: Dict[str, Tuple[torch.Tensor, torch.Tensor]]):
+        self.train = task[Splits.train]
+        self.val = task[Splits.val]
+        self.test = task[Splits.test]
 
 
 class MetaBatch:
     """Convenience class to process batches of episodes/tasks"""
 
     def __init__(
-        self,
-        raw_batch: Dict[str, Tuple[torch.Tensor, torch.Tensor]],
-        device: torch.device,
+        self, batch: Dict[str, Tuple[torch.Tensor, torch.Tensor]], device: torch.device,
     ):
         self.device = device
-        self.x_train, self.y_train = self.to_device(raw_batch["train"])
-        self.x_test, self.y_test = self.to_device(raw_batch["test"])
+        self.batch: Dict[str, Tuple[torch.Tensor, torch.Tensor]] = {
+            s: (x.to(device), y.to(device)) for s, (x, y) in batch.items()
+        }
 
-    def get_tasks(self,) -> List[List[torch.Tensor]]:
-        batch_size = self.x_train.shape[0]
-        tensors = [self.x_train, self.y_train, self.x_test, self.y_test]
-        return [[t[i] for t in tensors] for i in range(batch_size)]
-
-    def to_device(self, tensors: Iterable[torch.Tensor]) -> List[torch.Tensor]:
-        return [t.to(self.device) for t in tensors]
+    def get_tasks(self,) -> List[MetaTask]:
+        batch_size: int = self.batch[Splits.train][0].shape[0]
+        return [
+            MetaTask({s: (x[i], y[i]) for s, (x, y) in self.batch.items()})
+            for i in range(batch_size)
+        ]
 
 
 class IntentDataset(Dataset):
@@ -225,6 +210,7 @@ class IntentDataset(Dataset):
         self.root = Path(root)
         self.data_orig = self.prepare_data()
         self.texts, self.labels = self.process_data()
+        self.unique_labels = sorted(set(self.labels))
 
     def prepare_data(self) -> pd.DataFrame:
         url = "https://raw.githubusercontent.com/clinc/oos-eval/master/data/data_full.json"
@@ -252,10 +238,10 @@ class IntentDataset(Dataset):
         labels = df["label"].tolist()
         return texts, labels
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> Tuple[str, str]:
         return self.texts[i], self.labels[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         assert len(self.texts) == len(self.labels)
         return len(self.texts)
 
@@ -263,15 +249,33 @@ class IntentDataset(Dataset):
 class IntentEmbedBertDataset(IntentDataset):
     """Use pre-trained BERT language model to obtain sentence embeddings as pre-processing"""
 
-    def __init__(self, root: str, remove_oos_orig=True, try_embeds=False):
+    def __init__(
+        self, root: str, remove_oos_orig=True, try_embeds=False, try_label_embeds=False
+    ):
         super().__init__(root, remove_oos_orig)
         self.embedder = SentenceBERT()
-        self.embeds = self.embedder.embed_texts(self.texts)
+        self.embeds = self.embedder.embed_texts(self.texts, cache_name="texts")
+        self.unique_label_embeds = self.embed_labels()
         if try_embeds:
             self.try_embeds_fit_simple_classifier()
+        if try_label_embeds:
+            self.test_zero_shot_label_embeds()
 
     def __getitem__(self, i: int) -> Tuple[np.ndarray, str]:
         return self.embeds[i], self.labels[i]
+
+    def embed_labels(self):
+        labels = [label.replace("_", " ") for label in self.unique_labels]
+        return self.embedder.embed_texts(labels, cache_name="labels")
+
+    def test_zero_shot_label_embeds(self):
+        dists = metrics.pairwise.euclidean_distances(
+            self.embeds, self.unique_label_embeds
+        )
+        pred_indices = np.argmin(dists, axis=-1)
+        labels = np.array(self.unique_labels)
+        preds = labels[pred_indices]
+        print(metrics.classification_report(self.labels, preds))
 
     def try_embeds_fit_simple_classifier(self):
         def get_xy(data_split: str):
@@ -287,18 +291,112 @@ class IntentEmbedBertDataset(IntentDataset):
         print(metrics.classification_report(y_val, model.predict(x_val)))
 
 
+class IntentEmbedWordDataset(IntentDataset):
+    def __init__(self, root: str, remove_oos_orig=True):
+        super().__init__(root, remove_oos_orig)
+        self.embedder = WordEmbedder()
+        self.embeds = self.embedder.embed_texts(self.texts)
+        self.refine_embeds()
+        print(dict(embeds=self.embeds.shape))
+
+    def refine_embeds(self, maxlen_percentile=95):
+        lengths = [len(_) for _ in self.embeds]
+        lengths = sorted(lengths)
+        maxlen = lengths[len(lengths) * maxlen_percentile // 100]
+
+        embeds = np.zeros(shape=(len(lengths), maxlen, self.embedder.embed_size))
+        for i, row in enumerate(self.embeds):
+            row = row[:maxlen]
+            embeds[i, -len(row) :, :] = row
+        self.embeds = embeds.astype(np.float32)
+
+    def __getitem__(self, i: int) -> Tuple[np.ndarray, str]:
+        return self.embeds[i], self.labels[i]
+
+
+class IntentEmbedWordMeanDataset(IntentEmbedWordDataset):
+    def __init__(self, root: str, remove_oos_orig=True):
+        super().__init__(root, remove_oos_orig)
+
+    def refine_embeds(self, dummy_argument=0):
+        self.embeds = np.stack([np.mean(e, axis=0) for e in self.embeds])
+        self.embeds = self.embeds.astype(np.float32)
+
+
+class IntentWordIndicesDataset(IntentDataset):
+    def __init__(self, root: str, remove_oos_orig=True):
+        super().__init__(root, remove_oos_orig)
+        self.embedder = WordEmbedder()
+        self.embedder.fit_texts(self.texts)
+        self.indices = np.array([self.embedder.encode(t) for t in self.texts])
+        self.indices = self.refine()
+
+    def refine(self, maxlen_percentile=95) -> np.ndarray:
+        lengths = [len(_) for _ in self.indices]
+        lengths = sorted(lengths)
+        maxlen = lengths[len(lengths) * maxlen_percentile // 100]
+
+        pad = self.embedder.word2i["empty"]
+        indices = np.full(shape=(len(lengths), maxlen), fill_value=pad, dtype=np.int64)
+        for i, row in enumerate(self.indices):
+            row = row[:maxlen]
+            indices[i, -len(row) :] = row
+
+        assert np.min(indices) >= 0
+        assert np.max(indices) < len(self.embedder.vocab)
+        info = dict(
+            shape=indices.shape,
+            dtype=indices.dtype,
+            min=np.min(indices),
+            max=np.max(indices),
+            unique=len(np.unique(indices)),
+        )
+        print(dict(indices=info))
+        return indices
+
+    def __getitem__(self, i: int) -> Tuple[np.ndarray, str]:
+        return self.indices[i], self.labels[i]
+
+
 class IntentEmbedBertMetaLoader(MetaLoader):
-    def __init__(self, hparams: HyperParams, data_split: str):
-        dataset = IntentEmbedBertDataset(root=hparams.root)
+    def __init__(self, hp: HyperParams, data_split: str, do_test=False):
+        dataset = IntentEmbedBertDataset(
+            root=hp.root, try_embeds=do_test, try_label_embeds=do_test
+        )
         self.embed_size = dataset.embedder.embed_size
-        super().__init__(dataset, data_split, hparams)
+        super().__init__(dataset, data_split, hp)
 
 
-def main():
-    # Testing purposes only
-    IntentEmbedBertMetaLoader(HyperParams(), data_split=Splits.train)
-    OmniglotMetaLoader(HyperParams(), data_split=Splits.train)
+class IntentEmbedWordMetaLoader(MetaLoader):
+    def __init__(self, hp: HyperParams, data_split: str):
+        dataset = IntentEmbedWordDataset(root=hp.root)
+        self.embed_size = dataset.embedder.embed_size
+        super().__init__(dataset, data_split, hp)
+
+
+class IntentEmbedWordMeanMetaLoader(MetaLoader):
+    def __init__(self, hp: HyperParams, data_split: str):
+        dataset = IntentEmbedWordMeanDataset(root=hp.root)
+        self.embed_size = dataset.embedder.embed_size
+        super().__init__(dataset, data_split, hp)
+
+
+class IntentWordIndicesMetaLoader(MetaLoader):
+    def __init__(self, hp: HyperParams, data_split: str):
+        dataset = IntentWordIndicesDataset(root=hp.root)
+        self.embed_size = dataset.embedder.embed_size
+        self.vocab_size = len(dataset.embedder.vocab)
+        self.embeds = dataset.embedder.embeds
+        super().__init__(dataset, data_split, hp)
+
+
+def run_test():
+    # loader = IntentWordIndicesMetaLoader(HyperParams(), data_split=Splits.train)
+    # print(next(iter(loader)).keys())
+    # IntentEmbedWordMetaLoader(HyperParams(), data_split=Splits.train)
+    IntentEmbedBertMetaLoader(HyperParams(), data_split=Splits.train, do_test=True)
+    # OmniglotMetaLoader(HyperParams(), data_split=Splits.train)
 
 
 if __name__ == "__main__":
-    main()
+    run_test()
