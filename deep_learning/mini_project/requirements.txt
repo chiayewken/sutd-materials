@@ -5,6 +5,6 @@ torchvision==0.5.0
 tqdm==4.38.0
 matplotlib==3.2.0
 fire==0.2.1
-Pillow==7.0.0
+Pillow==9.3.0
 pytorch_lightning==0.7.1
 scikit_learn==0.22.2.post1
